@@ -1,0 +1,4 @@
+﻿Pozicioni;Tipi (objekti);Gjerësia (cm);Lartësia (cm);Parapeti (cm);Sasia (copë);Katet;ID në model
+W01;Derë-dritare rrëshqitëse;280;230;0;1;Përdhesa;W-03
+W02;Dritare PVC me dy krahë;140;140;90;5;Përdhesa, Kati 1;W-01, W-02, W-05, W-06, W-07
+W03;Dritare PVC me një krah;60;60;160;2;Përdhesa, Kati 1;W-04, W-08

@@ -1,0 +1,13 @@
+{
+    "addOnName": "ARBS_Studio",
+    "defaultLanguage": "INT",
+    "languages": [
+        "INT"
+    ],
+    "version": "0.1.0",
+    "copyright": {
+        "name": "ARBS Studio",
+        "year": "%Y"
+    },
+    "description": "ARBS Studio - template i punes ne shqip, kompozita, pershkrim teknik, fizike nderteses, insolim, skema dhe plan dinamik per Republiken e Kosoves"
+}

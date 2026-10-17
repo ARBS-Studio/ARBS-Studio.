@@ -1,0 +1,111 @@
+// ARBS Studio - Shabllonet e dokumentimit tekstual (ne shqip)
+// Vendmbajtesit {{...}} plotesohen nga Te dhenat e projektit / Profili i zyres;
+// blloqet [[...]] gjenerohen nga modeli i Archicad-it.
+{
+  "version": 1,
+  "projectFields": [
+    { "key": "emri",             "label": "Emri i projektit",                 "autotext": ["PROJECTNAME"] },
+    { "key": "nr",               "label": "Numri i projektit",                "autotext": ["PROJECTNUMBER"] },
+    { "key": "investitori",      "label": "Investitori (emri dhe mbiemri / subjekti)", "autotext": ["CLIENT", "CLIENTNAME"] },
+    { "key": "adresa_inv",       "label": "Adresa e investitorit",            "autotext": ["CLIENTFULLADDRESS"] },
+    { "key": "destinimi",        "label": "Destinimi i objektit",             "example": "Objekt banimi individual P+1" },
+    { "key": "kategoria",        "label": "Kategoria e ndërtimit (I / II / III)", "example": "I" },
+    { "key": "faza",             "label": "Faza e projektit",                 "autotext": ["PROJECTSTATUS"] },
+    { "key": "komuna",           "label": "Komuna",                           "autotext": ["SITECITY"] },
+    { "key": "vendi",            "label": "Vendi (qyteti / fshati)" },
+    { "key": "zona_kadastrale",  "label": "Zona kadastrale" },
+    { "key": "parcela",          "label": "Nr. i parcelës kadastrale" },
+    { "key": "adresa",           "label": "Adresa e vendndërtimit",          "autotext": ["SITEFULLADDRESS"] },
+    { "key": "gps",              "label": "Koordinatat (KosovaREF01)" },
+    { "key": "plani",            "label": "Dokumenti i planifikimit (PZHK / PRrU / HZK)" },
+    { "key": "sip_parceles",     "label": "Sipërfaqja e parcelës (m²)",      "number": true },
+    { "key": "gjurma",           "label": "Gjurma e objektit (m²)",           "number": true },
+    { "key": "bts",              "label": "Sipërfaqja bruto e ndërtimit – BTS (m²)", "number": true },
+    { "key": "katet",            "label": "Etazhiteti (p.sh. B+P+2)" },
+    { "key": "lartesia",         "label": "Lartësia e objektit (m)",          "number": true },
+    { "key": "vrr",              "label": "Distanca nga vija rregulluese (m)", "number": true },
+    { "key": "distanca_kufi",    "label": "Distanca minimale nga kufiri i parcelës (m)", "number": true },
+    { "key": "parkingu",         "label": "Numri i vendparkingjeve" },
+    { "key": "ngrohja",          "label": "Sistemi i ngrohjes",              "example": "Ngrohje qendrore me pompë termike ajër-ujë" },
+    { "key": "konstruksioni",    "label": "Sistemi konstruktiv",             "example": "Skelet b/a (kolona, trarë, pllaka) me mure mbushëse" },
+    { "key": "data",             "label": "Data e projektit" }
+  ],
+  "legislation": [
+    "Ligji Nr. 04/L-110 për Ndërtim",
+    "Ligji Nr. 04/L-174 për Planifikim Hapësinor",
+    "Ligji Nr. 08/L-242 për Performancën Energjetike të Ndërtesave",
+    "Ligji Nr. 04/L-012 për Mbrojtjen nga Zjarri",
+    "UA (MMPH) Nr. 04/2017 për kategorizimin e ndërtimeve",
+    "UA (MMPH) Nr. 05/2017 për mbikëqyrjen inspektuese dhe procedurën e certifikatës së përdorimit",
+    "UA (MMPH) Nr. 06/2017 për procedurat e kushteve ndërtimore, lejeve ndërtimore dhe lejeve të rrënimit për Kategorinë I dhe II",
+    "UA (MMPH) Nr. 08/2017 për normat teknike të planifikimit hapësinor",
+    "UA Nr. 15/2013 për ditarin e ndërtimit dhe librin e ndërtimit",
+    "Rregullore (MMPH) Nr. 04/18 për kërkesat minimale të performancës energjetike të ndërtesave",
+    "Rregullore (MMPH) Nr. 02/18 për metodologjinë kombëtare për kalkulimin e performancës së integruar energjetike të ndërtesave",
+    "Ligji Nr. 03/L-064 për Festat Zyrtare në Republikën e Kosovës (plani dinamik)",
+    "Standardet SK EN (Eurokodet) të miratuara nga Agjencia e Kosovës për Standardizim"
+  ],
+  "technicalDescription": {
+    "title": "PËRSHKRIMI TEKNIK",
+    "sections": [
+      { "id": "1", "title": "Të dhënat e përgjithshme", "body": [
+        "Investitori: {{investitori}}",
+        "Objekti: {{emri}} – {{destinimi}}",
+        "Lokacioni: {{vendi}}, Komuna {{komuna}}, ZK {{zona_kadastrale}}, parcela nr. {{parcela}}",
+        "Faza e projektit: {{faza}}  ·  Kategoria e ndërtimit: {{kategoria}}",
+        "Projektuesi: {{zyra.kompania}}, arkitekti përgjegjës {{zyra.titulli}} {{zyra.arkitekti}}"
+      ]},
+      { "id": "2", "title": "Baza ligjore dhe planifikuese", "body": [
+        "Projekti është hartuar në pajtim me kushtet ndërtimore të lëshuara nga Komuna {{komuna}}, dokumentin e planifikimit {{plani}} dhe legjislacionin në fuqi në Republikën e Kosovës:",
+        "[[LEGJISLACIONI]]"
+      ]},
+      { "id": "3", "title": "Lokacioni dhe situacioni", "body": [
+        "Parcela kadastrale nr. {{parcela}} në ZK {{zona_kadastrale}} ka sipërfaqe {{sip_parceles}} m². Objekti vendoset në distancë {{vrr}} m nga vija rregulluese dhe minimum {{distanca_kufi}} m nga kufiri i parcelës.",
+        "Qasja në parcelë realizohet nga rruga publike. Kyçjet në infrastrukturë (ujësjellës, kanalizim, energji elektrike) bëhen sipas pëlqimeve të operatorëve përkatës.",
+        "[[TREGUESIT]]"
+      ]},
+      { "id": "4", "title": "Zgjidhja funksionale", "body": [
+        "Objekti ka etazhitetin {{katet}} me lartësi {{lartesia}} m. Organizimi hapësinor sipas kateve është dhënë në tabelën e sipërfaqeve:",
+        "[[TABELA_ZONAVE]]"
+      ]},
+      { "id": "5", "title": "Sistemi konstruktiv", "body": [
+        "{{konstruksioni}}. Themelimi dhe dimensionimi i elementeve konstruktive bëhen sipas projektit të konstruksionit dhe standardeve SK EN 1990–1998 (Eurokodet), duke përfshirë veprimet sizmike sipas SK EN 1998-1.",
+        "Betoni i elementeve konstruktive: minimum C25/30; çeliku i armaturës B500B."
+      ]},
+      { "id": "6", "title": "Materialet dhe kompozitat", "body": [
+        "Përbërja e elementeve të mbështjellësit dhe të ndarjeve të brendshme:",
+        "[[TABELA_KOMPOZITAVE]]"
+      ]},
+      { "id": "7", "title": "Dyert dhe dritaret", "body": [
+        "Dritaret e jashtme janë me profile PVC/alumin me ndërprerje termike dhe xham termoizolues me koeficient U ≤ 1.60 W/m²K (Rregullore MMPH Nr. 04/18). Detajet janë dhënë në skemat e hapjeve.",
+        "[[TABELA_HAPJEVE]]"
+      ]},
+      { "id": "8", "title": "Performanca energjetike dhe fizika e ndërtimit", "body": [
+        "Elementet e mbështjellësit termik janë kontrolluar kundrejt vlerave maksimale të koeficientit të kalimit të nxehtësisë U sipas Rregullores MMPH Nr. 04/18:",
+        "[[TABELA_U]]",
+        "Ngrohja: {{ngrohja}}."
+      ]},
+      { "id": "9", "title": "Mbrojtja nga zjarri", "body": [
+        "Masat e mbrojtjes nga zjarri zbatohen sipas Ligjit Nr. 04/L-012 për Mbrojtjen nga Zjarri: rrugët e evakuimit, materialet e fasadës sipas klasës së reagimit ndaj zjarrit, aparatet për shuarjen e zjarrit dhe qasja për automjetet zjarrfikëse."
+      ]},
+      { "id": "10", "title": "Qasja për personat me aftësi të kufizuara", "body": [
+        "Hyrjet, komunikimet horizontale dhe vertikale dhe nyjet sanitare projektohen sipas normave teknike për qasje pa barriera, aty ku zbatohen për destinimin e objektit."
+      ]},
+      { "id": "11", "title": "Instalimet", "body": [
+        "Instalimet hidro-sanitare, elektrike dhe makinerike janë pjesë e projekteve përkatëse të fazave. Furnizimi me ujë dhe shkarkimi i ujërave të zeza bëhen në rrjetin publik sipas pëlqimeve."
+      ]},
+      { "id": "12", "title": "Mbrojtja e mjedisit dhe mbeturinat", "body": [
+        "Gjatë ndërtimit menaxhohen mbeturinat inerte dhe dheu i gërmuar sipas legjislacionit mjedisor. Parcela gjelbërohet sipas situacionit."
+      ]}
+    ]
+  },
+  "buildingPhysicsIntro": [
+    "Llogaritja e koeficientit të kalimit të nxehtësisë U është bërë sipas SK EN ISO 6946, me rezistencat sipërfaqësore Rsi/Rse sipas drejtimit të fluksit të nxehtësisë.",
+    "Kontrolli i difuzionit të avullit të ujit është bërë me metodën Glaser (periudha e kondensimit {{glaser.condDays}} ditë me θi = {{glaser.thetaI}} °C, φi = {{glaser.phiI}} %, θe = {{glaser.thetaE}} °C, φe = {{glaser.phiE}} %; periudha e tharjes {{glaser.dryDays}} ditë me θ = {{glaser.dryTheta}} °C, φ = {{glaser.dryPhi}} %).",
+    "Vlerat maksimale të lejuara janë sipas Rregullores (MMPH) Nr. 04/18 për kërkesat minimale të performancës energjetike të ndërtesave."
+  ],
+  "insolationIntro": [
+    "Studimi i insolimit është bërë për lokacionin {{lokacioni}} (gjerësia gjeografike {{lat}}°, gjatësia {{lon}}°, lartësia mbidetare {{alt}} m), me orën lokale CET/CEST.",
+    "Pozicioni i diellit llogaritet me algoritmin NOAA. Orët e insolimit të fasadave janë teorike (pa hije nga objektet përreth); për hijet reale përdoret Studimi i Diellit (Sun Study) në Archicad me shtresën «P-02 Prezantimi – hijet / insolimi»."
+  ]
+}

@@ -1,0 +1,167 @@
+// ARBS Studio - Kompozitat (Composites) tipike per ndertimet ne Kosove
+// Shtresat: mure = nga JASHTE -> BRENDA ; pllaka/kulme = nga LART -> POSHTE
+// d = trashesia ne mm. "core" = shtrese konstruktive, "finish" = shtrese perfundimtare,
+// "vent" = shtrese jashte hapesires se ventiluar (nuk merret ne llogaritjen e U).
+// "umax" = celesi i tabeles se vlerave maksimale (Rregullore MMPH Nr. 04/18).
+{
+  "version": 1,
+  "umaxSource": "Rregullore (MMPH) Nr. 04/18 për kërkesat minimale të performancës energjetike të ndërtesave",
+  "umax": {
+    "mur_jashtem":            { "value": 0.35, "label": "Muri i jashtëm" },
+    "mur_toke":               { "value": 0.50, "label": "Muri në kontakt me tokën" },
+    "dysheme_toke":           { "value": 0.50, "label": "Dyshemeja në kontakt me tokën" },
+    "dysheme_ajer":           { "value": 0.30, "label": "Dyshemeja e ekspozuar ndaj mjedisit të jashtëm" },
+    "kulm_pjerret_pangrohur": { "value": 0.30, "label": "Kulmi i pjerrët i pangrohur" },
+    "kulm_pjerret_ngrohur":   { "value": 0.30, "label": "Kulmi i pjerrët i ngrohur" },
+    "kulm_rrafshet":          { "value": 0.30, "label": "Kulmi i rrafshët" },
+    "pllake_pangrohur":       { "value": 0.50, "label": "Pllaka mes kateve që kufizohet me hapësirë të pangrohur" },
+    "pllake_ngrohur":         { "value": 0.90, "label": "Pllaka me kate të ngrohura" },
+    "mur_banesash":           { "value": 0.80, "label": "Muri në mes dy hapësirave të banimit" },
+    "xham":                   { "value": 1.60, "label": "Komponentet e qelqit (dritare, dyer xhami)" }
+  },
+  "composites": [
+    { "code": "MJ-01", "name": "Mur i jashtëm – bllok qeramik 25 + EPS 10", "usage": "wall", "umax": "mur_jashtem", "flow": "horizontal", "boundary": "exterior", "envelope": true,
+      "description": "Fasadë termike kontaktuese (ETICS) me polistiren, sistemi më i përdorur te shtëpitë individuale.",
+      "layers": [
+        { "m": "LLA-DEK", "d": 5, "finish": true }, { "m": "LLA-ARM", "d": 5 }, { "m": "EPS-F", "d": 100 },
+        { "m": "BLL-QER25", "d": 250, "core": true }, { "m": "LLA-GC", "d": 20, "finish": true } ] },
+
+    { "code": "MJ-02", "name": "Mur i jashtëm – bllok qeramik 25 + lesh guri 10", "usage": "wall", "umax": "mur_jashtem", "flow": "horizontal", "boundary": "exterior", "envelope": true,
+      "description": "Fasadë kontaktuese jo e djegshme (klasa A1) – e rekomanduar për ndërtesa kolektive dhe shirita kundër zjarrit.",
+      "layers": [
+        { "m": "LLA-DEK", "d": 5, "finish": true }, { "m": "LLA-ARM", "d": 5 }, { "m": "MW-F", "d": 100 },
+        { "m": "BLL-QER25", "d": 250, "core": true }, { "m": "LLA-GC", "d": 20, "finish": true } ] },
+
+    { "code": "MJ-03", "name": "Mur i jashtëm – beton qelizor 30 + EPS 5", "usage": "wall", "umax": "mur_jashtem", "flow": "horizontal", "boundary": "exterior", "envelope": true,
+      "description": "Murature me blloqe AAC me termoizolim shtesë të hollë.",
+      "layers": [
+        { "m": "LLA-DEK", "d": 5, "finish": true }, { "m": "LLA-ARM", "d": 5 }, { "m": "EPS-F", "d": 50 },
+        { "m": "BET-QEL", "d": 300, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "MJ-04", "name": "Mur i jashtëm – beton i armuar 20 + lesh guri 12", "usage": "wall", "umax": "mur_jashtem", "flow": "horizontal", "boundary": "exterior", "envelope": true,
+      "description": "Mure/septa betoni në ndërtesa kolektive me fasadë kontaktuese jo të djegshme.",
+      "layers": [
+        { "m": "LLA-DEK", "d": 5, "finish": true }, { "m": "LLA-ARM", "d": 5 }, { "m": "MW-F", "d": 120 },
+        { "m": "BET-AR", "d": 200, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "MJ-05", "name": "Mur i jashtëm – fasadë e ventiluar (bllok 25 + lesh guri 12)", "usage": "wall", "umax": "mur_jashtem", "flow": "horizontal", "boundary": "exterior", "envelope": true,
+      "description": "Fasadë e ventiluar me veshje (HPL, qeramikë, gur) mbi nënkonstruksion alumini.",
+      "layers": [
+        { "m": "PLL-QER", "d": 10, "vent": true, "finish": true }, { "m": "AJR-V", "d": 40, "vent": true },
+        { "m": "MEM-DIF", "d": 1 }, { "m": "MW-F", "d": 120 },
+        { "m": "BLL-QER25", "d": 250, "core": true }, { "m": "LLA-GC", "d": 20, "finish": true } ] },
+
+    { "code": "MT-01", "name": "Mur bodrumi në kontakt me tokën – b/a 25 + XPS 8", "usage": "wall", "umax": "mur_toke", "flow": "horizontal", "boundary": "ground", "envelope": true,
+      "description": "Mur i bodrumit të ngrohur, hidroizolim i dyfishtë dhe mbrojtje me membranë drenazhuese.",
+      "layers": [
+        { "m": "DREN", "d": 8 }, { "m": "XPS", "d": 80 }, { "m": "HID-BIT", "d": 8 },
+        { "m": "BET-AR", "d": 250, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "TH-03", "name": "Mur themeli – b/a 40 + XPS 6", "usage": "wall", "umax": "mur_toke", "flow": "horizontal", "boundary": "ground", "envelope": true,
+      "description": "Mur themeli / shirit themeli me hidroizolim dhe termoizolim të perimetrit.",
+      "layers": [
+        { "m": "DREN", "d": 8 }, { "m": "XPS", "d": 60 }, { "m": "HID-BIT", "d": 8 }, { "m": "BET-AR", "d": 400, "core": true } ] },
+
+    { "code": "MB-01", "name": "Mur ndarës mes banesave – bllok 20 + lesh mineral 5 + GK", "usage": "wall", "umax": "mur_banesash", "flow": "horizontal", "boundary": "heated", "envelope": false,
+      "description": "Mur ndarës mes njësive të banimit me izolim akustik.",
+      "layers": [
+        { "m": "LLA-GC", "d": 15, "finish": true }, { "m": "BLL-QER25", "d": 200, "core": true },
+        { "m": "MW-S", "d": 50 }, { "m": "GK", "d": 12.5 }, { "m": "GK", "d": 12.5, "finish": true } ] },
+
+    { "code": "MN-01", "name": "Mur ndarës i brendshëm – bllok 12", "usage": "wall", "umax": "", "flow": "horizontal", "boundary": "heated", "envelope": false,
+      "description": "Mur ndarës brenda njësisë.",
+      "layers": [ { "m": "LLA-GC", "d": 15, "finish": true }, { "m": "BLL-QER-N", "d": 120, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "MN-02", "name": "Mur ndarës gipskartoni 12.5 cm (2+2 GK)", "usage": "wall", "umax": "", "flow": "horizontal", "boundary": "heated", "envelope": false,
+      "description": "Mur i thatë me profile metalike CW/UW 75 dhe lesh mineral.",
+      "layers": [ { "m": "GK", "d": 12.5, "finish": true }, { "m": "GK", "d": 12.5 }, { "m": "MW-S", "d": 75, "core": true },
+                  { "m": "GK", "d": 12.5 }, { "m": "GK", "d": 12.5, "finish": true } ] },
+
+    { "code": "MN-03", "name": "Mur ndaj shkallëve/hapësirës së pangrohur – bllok 20 + EPS 5", "usage": "wall", "umax": "", "flow": "horizontal", "boundary": "unheated", "envelope": false,
+      "description": "Rregullorja 04/18 nuk jep vlerë të veçantë për këtë mur; rekomandohet U ≤ 0.50 W/m²K (analog me pllakën ndaj hapësirës së pangrohur).",
+      "layers": [ { "m": "LLA-GC", "d": 15, "finish": true }, { "m": "EPS-F", "d": 50 }, { "m": "BLL-QER25", "d": 200, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "DY-01", "name": "Dysheme mbi tokë – pllakë b/a 15 + EPS 5 + XPS 5", "usage": "slab", "umax": "dysheme_toke", "flow": "downward", "boundary": "ground", "envelope": true, "insideFirst": true,
+      "description": "Dysheme e përdhesës mbi tampon zhavorri me hidroizolim mbi beton të dobët.",
+      "layers": [
+        { "m": "PLL-QER", "d": 10, "finish": true }, { "m": "NGJ-PLL", "d": 5 }, { "m": "EST-C", "d": 50 }, { "m": "PE", "d": 1 },
+        { "m": "EPS-150", "d": 50 }, { "m": "XPS", "d": 50 }, { "m": "HID-BIT", "d": 8 },
+        { "m": "BET-AR", "d": 150, "core": true }, { "m": "BET-DOB", "d": 50 }, { "m": "ZHAV", "d": 200 } ] },
+
+    { "code": "DY-02", "name": "Pllakë ndërkatëshe – b/a 18 me dysheme lundruese", "usage": "slab", "umax": "pllake_ngrohur", "flow": "downward", "boundary": "heated", "envelope": false, "insideFirst": true,
+      "description": "Mes kateve të ngrohura, me izolim kundër zhurmës goditëse.",
+      "layers": [
+        { "m": "PARK", "d": 15, "finish": true }, { "m": "EST-C", "d": 50 }, { "m": "PE", "d": 1 }, { "m": "EPS-T", "d": 30 },
+        { "m": "BET-AR", "d": 180, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "DY-03", "name": "Pllakë mbi bodrum/garazh të pangrohur – b/a 20 + lesh guri 8", "usage": "slab", "umax": "pllake_pangrohur", "flow": "downward", "boundary": "unheated", "envelope": true, "insideFirst": true,
+      "description": "Termoizolim në anën e poshtme të pllakës (tavani i bodrumit).",
+      "layers": [
+        { "m": "PARK", "d": 15, "finish": true }, { "m": "EST-C", "d": 50 }, { "m": "PE", "d": 1 }, { "m": "EPS-T", "d": 30 },
+        { "m": "BET-AR", "d": 200, "core": true }, { "m": "MW-F", "d": 80 }, { "m": "LLA-ARM", "d": 5, "finish": true } ] },
+
+    { "code": "DY-04", "name": "Pllakë mbi ajër të jashtëm (erker/portik) – b/a 20 + lesh guri 10", "usage": "slab", "umax": "dysheme_ajer", "flow": "downward", "boundary": "exterior", "envelope": true, "insideFirst": true,
+      "description": "Pjesë të daluara të ndërtesës mbi hapësirë të hapur.",
+      "layers": [
+        { "m": "PLL-QER", "d": 10, "finish": true }, { "m": "NGJ-PLL", "d": 5 }, { "m": "EST-C", "d": 50 }, { "m": "PE", "d": 1 },
+        { "m": "EPS-150", "d": 40 }, { "m": "BET-AR", "d": 200, "core": true }, { "m": "MW-F", "d": 100 },
+        { "m": "LLA-ARM", "d": 5 }, { "m": "LLA-DEK", "d": 5, "finish": true } ] },
+
+    { "code": "DY-05", "name": "Ballkon / terasë e hapur – b/a 18", "usage": "slab", "umax": "", "flow": "downward", "boundary": "exterior", "envelope": false, "insideFirst": true,
+      "description": "Pllakë konzolë jashtë mbështjellësit termik (rekomandohet element për ndërprerjen e urës termike).",
+      "layers": [
+        { "m": "PLL-QER", "d": 10, "finish": true }, { "m": "NGJ-PLL", "d": 5 }, { "m": "HID-LNG", "d": 3 },
+        { "m": "EST-C", "d": 50 }, { "m": "BET-AR", "d": 180, "core": true } ] },
+
+    { "code": "DY-06", "name": "Tavan nën nënkulm të pangrohur – b/a 18 + EPS 12", "usage": "slab", "umax": "kulm_pjerret_pangrohur", "flow": "upward", "boundary": "unheated", "envelope": true,
+      "description": "Pllaka e katit të fundit nën kulm të pjerrët të pangrohur (izolimi mbi pllakë).",
+      "layers": [
+        { "m": "EST-C", "d": 40, "finish": true }, { "m": "PE", "d": 1 }, { "m": "EPS-150", "d": 120 }, { "m": "BAV-AL", "d": 4 },
+        { "m": "BET-AR", "d": 180, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "TH-01", "name": "Pllakë themeli (radier) b/a 40 + XPS 10", "usage": "slab", "umax": "dysheme_toke", "flow": "downward", "boundary": "ground", "envelope": true, "insideFirst": true,
+      "description": "Pllakë themeli për bodrum të ngrohur, me XPS me rezistencë të lartë në shtypje nën pllakë.",
+      "layers": [
+        { "m": "BET-AR", "d": 400, "core": true }, { "m": "HID-BIT", "d": 8 }, { "m": "XPS", "d": 100 }, { "m": "BET-DOB", "d": 100 } ] },
+
+    { "code": "TH-02", "name": "Pllakë themeli (radier) b/a 50 pa termoizolim", "usage": "slab", "umax": "", "flow": "downward", "boundary": "ground", "envelope": false, "insideFirst": true,
+      "description": "Për bodrum të pangrohur ose objekte ndihmëse.",
+      "layers": [ { "m": "BET-AR", "d": 500, "core": true }, { "m": "HID-BIT", "d": 8 }, { "m": "BET-DOB", "d": 100 }, { "m": "ZHAV", "d": 200 } ] },
+
+    { "code": "KR-01", "name": "Kulm i rrafshët i pashkelshëm (klasik) – EPS 14", "usage": "roof", "umax": "kulm_rrafshet", "flow": "upward", "boundary": "exterior", "envelope": true,
+      "description": "Kulm i ngrohtë me zhavorr balast, membranë PVC/TPO dhe barrierë avulli.",
+      "layers": [
+        { "m": "ZHAV", "d": 50, "finish": true }, { "m": "GJEO", "d": 2 }, { "m": "HID-PVC", "d": 2 }, { "m": "GJEO", "d": 2 },
+        { "m": "EPS-200", "d": 140 }, { "m": "BAV-AL", "d": 4 }, { "m": "BET-PJE", "d": 60 },
+        { "m": "BET-AR", "d": 200, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "KR-02", "name": "Kulm i rrafshët i shkelshëm (terasë, kulm i përmbysur) – XPS 16", "usage": "roof", "umax": "kulm_rrafshet", "flow": "upward", "boundary": "exterior", "envelope": true,
+      "description": "Pllaka betoni mbi mbajtës, XPS mbi hidroizolim (kulm i përmbysur).",
+      "layers": [
+        { "m": "PLL-BET", "d": 40, "vent": true, "finish": true }, { "m": "AJR-V", "d": 30, "vent": true }, { "m": "GJEO", "d": 2 },
+        { "m": "XPS", "d": 160 }, { "m": "HID-BIT", "d": 8 }, { "m": "BET-PJE", "d": 60 },
+        { "m": "BET-AR", "d": 200, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "KR-03", "name": "Kulm i gjelbër ekstensiv – EPS 16", "usage": "roof", "umax": "kulm_rrafshet", "flow": "upward", "boundary": "exterior", "envelope": true,
+      "description": "Substrat 10 cm, shtresë drenazhuese, membranë kundër rrënjëve.",
+      "layers": [
+        { "m": "SUBS", "d": 100, "finish": true }, { "m": "GJEO", "d": 2 }, { "m": "DREN", "d": 20 }, { "m": "HID-PVC", "d": 2 },
+        { "m": "EPS-200", "d": 160 }, { "m": "BAV-AL", "d": 4 }, { "m": "BET-PJE", "d": 60 },
+        { "m": "BET-AR", "d": 200, "core": true }, { "m": "LLA-GC", "d": 15, "finish": true } ] },
+
+    { "code": "KP-01", "name": "Kulm i pjerrët i ngrohur (nënkulm i banuar) – lesh mineral 16+6", "usage": "roof", "umax": "kulm_pjerret_ngrohur", "flow": "upward", "boundary": "exterior", "envelope": true,
+      "description": "Tjegulla mbi letva, membranë difuzive, izolim mes dhe nën mahi, kontroll avulli dhe gipskarton. U pa efektin e mahive (llogaritje e detajuar sipas ISO 6946 për shtresa johomogjene).",
+      "layers": [
+        { "m": "TJEG", "d": 30, "vent": true, "finish": true }, { "m": "LETVA", "d": 50, "vent": true }, { "m": "MEM-DIF", "d": 1 },
+        { "m": "MW-S", "d": 160, "core": true }, { "m": "MW-S", "d": 60 }, { "m": "PE", "d": 1 },
+        { "m": "GK", "d": 12.5 }, { "m": "GK", "d": 12.5, "finish": true } ] },
+
+    { "code": "KP-02", "name": "Kulm i pjerrët i ftohtë – mbulesë mbi nënkulm të pangrohur", "usage": "roof", "umax": "", "flow": "upward", "boundary": "exterior", "envelope": false,
+      "description": "Mbulesë me tjegulla mbi dërrasa; izolimi vendoset në tavanin e katit të fundit (shih DY-06).",
+      "layers": [ { "m": "TJEG", "d": 30, "finish": true }, { "m": "LETVA", "d": 50 }, { "m": "MEM-DIF", "d": 1 }, { "m": "DRU-P", "d": 24, "core": true } ] },
+
+    { "code": "KP-03", "name": "Kulm me panel sanduiç PIR 10 cm", "usage": "roof", "umax": "kulm_rrafshet", "flow": "upward", "boundary": "exterior", "envelope": true,
+      "description": "Për objekte industriale/afariste me konstruksion metalik.",
+      "layers": [ { "m": "PIR", "d": 100, "core": true } ] }
+  ]
+}

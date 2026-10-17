@@ -1,0 +1,12 @@
+﻿#include "ResourceIds.hpp"
+
+/* ARBS Studio - burimet e pavarura nga gjuha */
+
+'MDID' 32500 "Add-On Identifier" {
+	ARBS_MDID_DEVELOPER
+	ARBS_MDID_LOCAL
+}
+
+'GICN' ID_ARBS_ICON "ArbsIcon" {
+	"ArbsIcon"
+}

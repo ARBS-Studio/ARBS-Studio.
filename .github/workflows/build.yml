@@ -1,0 +1,106 @@
+# =============================================================================
+# ARBS Studio - ndertimi automatik
+#  1) testet e berthames (Linux)
+#  2) add-on-i per Archicad 28/29/30 ne Windows dhe macOS (DevKit shkarkohet automatikisht)
+#  3) instaluesi i vetem: ARBS_Studio_Setup_<ver>.exe (Windows) dhe .pkg (macOS)
+# Per shperndarje vendosni sekretet ARBS_MDID_DEVELOPER dhe ARBS_MDID_LOCAL
+# (merren falas ne https://archicadapi.graphisoft.com).
+# =============================================================================
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testet e berthames
+        run: |
+          cmake -S Tests -B build-tests -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-tests -j 4
+          ctest --test-dir build-tests --output-on-failure
+          mkdir -p samples && ./build-tests/arbs_samples Data samples
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ARBS-dokumente-shembull
+          path: samples/
+
+  addon:
+    needs: core-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-2022, macos-14 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Xcode
+        if: runner.os == 'macOS'
+        run: sudo xcode-select -s /Applications/Xcode_15.1.app || true
+      - name: MDID (opsionale)
+        env:
+          DEV: ${{ secrets.ARBS_MDID_DEVELOPER }}
+          LOC: ${{ secrets.ARBS_MDID_LOCAL }}
+        if: env.DEV != ''
+        run: |
+          python - <<'PY'
+          import os, re
+          p = 'Src/ResourceIds.hpp'
+          s = open(p).read()
+          s = re.sub(r'(#define ARBS_MDID_DEVELOPER\s+)1\b', r'\g<1>' + os.environ['DEV'], s)
+          s = re.sub(r'(#define ARBS_MDID_LOCAL\s+)1\b', r'\g<1>' + os.environ['LOC'], s)
+          open(p, 'w').write(s)
+          PY
+      - name: Ndertimi per Archicad 28, 29, 30
+        run: python Tools/BuildAddOn.py --configFile config.json --acVersion 28 29 30 --buildConfig Release --package
+      - name: Mbledhja e binareve
+        run: |
+          for v in 28 29 30; do
+            mkdir -p dist/AC$v
+            src="Build/Package/ARBS_Studio/$v/INT/Release"
+            if [ "$RUNNER_OS" == "Windows" ]; then cp "$src/ARBS_Studio.apx" dist/AC$v/; else cp -R "$src/ARBS_Studio.bundle" dist/AC$v/; fi
+          done
+          ls -R dist | head -40
+      - name: Instaluesi Windows (Inno Setup)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
+          $ver = (Get-Content config.json | ConvertFrom-Json).version
+          & $iscc "/DAppVersion=$ver" "/DBinDir=..\..\dist" Installer\Windows\ARBS_Studio.iss
+      - name: Instaluesi macOS (pkg)
+        if: runner.os == 'macOS'
+        run: |
+          ver=$(python -c "import json;print(json.load(open('config.json'))['version'])")
+          Installer/macOS/build_pkg.sh dist "$ver"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ARBS-Studio-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.pkg
+            dist/AC*/
+      - name: Publikimi (vetem per tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.exe
+            dist/*.pkg

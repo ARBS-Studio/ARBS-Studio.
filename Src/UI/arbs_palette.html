@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARBS Studio</title>
+<style>
+  :root {
+    --green: #135027; --green-2: #1d6b38; --green-soft: #e6efe8;
+    --navy: #002142; --ink: #1d2733; --muted: #5c6b79; --line: #d7dde3;
+    --bg: #f6f7f8; --card: #ffffff; --warn: #9a6a00; --warn-bg: #fff4d6; --err: #b3261e; --err-bg: #fbe9e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e7ecef; --muted: #9aa7b3; --line: #39424b; --bg: #1f2428; --card: #2a3036; --green-soft: #22382a; --navy: #cfe0f0; --warn-bg: #3a3220; --err-bg: #3d2523; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font: 12px/1.4 "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  header { display: flex; align-items: center; gap: 10px; padding: 10px 12px 8px; background: var(--card); border-bottom: 1px solid var(--line); }
+  header img { height: 34px; }
+  header .t { flex: 1; min-width: 0; }
+  header .t b { display: block; font-size: 13px; color: var(--navy); }
+  header .t span { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .ver { font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 1px 7px; }
+  nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px; background: var(--card); border-bottom: 1px solid var(--line); }
+  nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px 6px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ink); cursor: pointer; font-size: 10.5px; }
+  nav button svg { width: 22px; height: 22px; stroke: var(--green); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  nav button:hover { background: var(--green-soft); }
+  nav button.on { background: var(--green); color: #fff; }
+  nav button.on svg { stroke: #fff; }
+  main { flex: 1; overflow-y: auto; padding: 10px 12px 16px; }
+  h2 { font-size: 13.5px; margin: 2px 0 2px; color: var(--navy); }
+  .sub { color: var(--muted); margin: 0 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+  .card h3 { font-size: 12px; margin: 0 0 6px; color: var(--green); }
+  label.f { display: block; margin-bottom: 7px; }
+  label.f span { display: block; color: var(--muted); font-size: 11px; margin-bottom: 2px; }
+  input[type=text], input[type=number], input[type=date], select, textarea { width: 100%; padding: 5px 7px; border: 1px solid var(--line); border-radius: 5px; background: var(--card); color: var(--ink); font: inherit; }
+  textarea { resize: vertical; min-height: 46px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .chk { display: flex; align-items: flex-start; gap: 7px; padding: 4px 0; cursor: pointer; }
+  .chk input { margin: 2px 0 0; }
+  .chk small { display: block; color: var(--muted); }
+  .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  button.b { padding: 7px 12px; border-radius: 6px; border: 1px solid var(--green); background: var(--green); color: #fff; cursor: pointer; font: inherit; font-weight: 600; }
+  button.b:hover { background: var(--green-2); }
+  button.b.s { background: transparent; color: var(--green); }
+  button.b:disabled { opacity: .5; cursor: default; }
+  .badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 9px; background: var(--green-soft); color: var(--green); font-weight: 600; white-space: nowrap; }
+  .badge.w { background: var(--warn-bg); color: var(--warn); }
+  .badge.e { background: var(--err-bg); color: var(--err); }
+  .comp { border-top: 1px solid var(--line); padding: 6px 0; }
+  .comp:first-of-type { border-top: none; }
+  .comp .h { display: flex; align-items: center; gap: 7px; }
+  .comp .h b { font-size: 11.5px; }
+  .comp .h .n { flex: 1; min-width: 0; }
+  .comp .h .n small { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .layers { margin: 5px 0 2px 22px; display: none; }
+  .comp.open .layers { display: block; }
+  .bar { display: flex; height: 16px; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+  .bar i { display: block; height: 100%; border-right: 1px solid rgba(0,0,0,.25); }
+  .layers table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  .layers td { padding: 1px 3px; border-bottom: 1px dotted var(--line); }
+  .layers td.r { text-align: right; white-space: nowrap; }
+  .grp { font-weight: 700; color: var(--navy); margin: 8px 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  .phase { border-left: 3px solid var(--green); padding: 4px 0 4px 8px; margin-bottom: 6px; }
+  .phase ul { margin: 4px 0 0 16px; padding: 0; color: var(--muted); font-size: 11px; }
+  details summary { cursor: pointer; color: var(--green); font-size: 11px; margin-top: 3px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 11.5px; }
+  .kv b { font-weight: 600; }
+  table.t { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  table.t th { text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); padding: 2px 3px; }
+  table.t td { border-bottom: 1px dotted var(--line); padding: 2px 3px; vertical-align: top; }
+  table.t td.r { text-align: right; white-space: nowrap; }
+  tr.crit td:first-child { box-shadow: inset 3px 0 0 var(--err); }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
+  .tile:hover { border-color: var(--green); }
+  .tile b { display: block; color: var(--navy); margin-bottom: 2px; }
+  .tile small { color: var(--muted); }
+  footer { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--line); background: var(--card); min-height: 34px; }
+  footer .msg { flex: 1; min-width: 0; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  footer .msg.ok { color: var(--green); } footer .msg.err { color: var(--err); }
+  footer button { font-size: 11px; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+  .spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--green-soft); border-top-color: var(--green); border-radius: 50%; animation: r .8s linear infinite; vertical-align: -2px; }
+  @keyframes r { to { transform: rotate(360deg); } }
+  .hide { display: none !important; }
+  .note { font-size: 11px; color: var(--muted); }
+  .files a { display: block; color: var(--green); cursor: pointer; text-decoration: underline; font-size: 11px; word-break: break-all; }
+</style>
+</head>
+<body>
+<header>
+  <img id="logo" alt="ARBS Studio" src="">
+  <div class="t"><b>ARBS Studio</b><span id="projName">Archicad · Republika e Kosovës</span></div>
+  <span class="ver" id="ver">v0.1</span>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+<footer><div class="msg" id="msg">Gati.</div><button id="openFolder" title="Hap dosjen e dokumenteve">Dosja</button></footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------- ikonat
+  const I = {
+    profile: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 3.8-5.5 7-5.5s5.8 1.9 7 5.5"/>',
+    template: '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 9h17M9 9v11.5"/>',
+    composites: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/><path d="M8 6v12" stroke-dasharray="2 2"/>',
+    techdesc: '<path d="M7 3.5h7l4 4V20.5H7z"/><path d="M14 3.5V8h4M9.5 12h6M9.5 15h6M9.5 18h4"/>',
+    physics: '<path d="M4 19c3-9 6-12 8-12s4 6 8 6"/><path d="M4 5h4M4 9h2"/><circle cx="17" cy="6" r="2"/>',
+    insolation: '<circle cx="12" cy="12" r="3.5"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>',
+    schedules: '<rect x="4" y="3.5" width="7" height="17" rx="1"/><rect x="13" y="7" width="7" height="7" rx="1"/><path d="M13 10.5h7M16.5 7v7M9 12h.01"/>',
+    plan: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h5M10 16.5h6"/>'
+  };
+  const SECTIONS = [
+    ['profile', 'Projekti'], ['template', 'Template'], ['composites', 'Kompozitat'], ['techdesc', 'Përshkrimi'],
+    ['physics', 'Fizika'], ['insolation', 'Insolimi'], ['schedules', 'Skemat'], ['plan', 'Plani dinamik']
+  ];
+
+  // ---------------------------------------------------------------- ura C++
+  function call (cmd, data) {
+    const req = JSON.stringify(Object.assign({ cmd: cmd }, data || {}));
+    if (window.ARBS && typeof window.ARBS.Call === 'function')
+      return window.ARBS.Call(req).then(function (r) { return JSON.parse(r); });
+    return Promise.resolve(window.ARBSMock ? window.ARBSMock(cmd, data || {}) : { ok: false, error: 'Paleta nuk është brenda Archicad-it.' });
+  }
+
+  const S = { section: 'profile', catalog: null, office: {}, project: {}, plan: {}, model: null, busy: false };
+  const $ = function (id) { return document.getElementById(id); };
+  const esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
+  const num = function (v, d) { return (Number(v) || 0).toFixed(d == null ? 2 : d).replace('.', ','); };
+
+  function status (text, kind) {
+    const m = $('msg');
+    m.className = 'msg' + (kind ? ' ' + kind : '');
+    m.innerHTML = text;
+  }
+
+  function run (cmd, data, label) {
+    if (S.busy) return Promise.resolve(null);
+    S.busy = true;
+    status('<span class="spin"></span> ' + esc(label || 'Duke punuar…'));
+    return call(cmd, data).then(function (r) {
+      S.busy = false;
+      if (!r || !r.ok) { status(esc((r && r.error) || 'Gabim i panjohur.'), 'err'); return r; }
+      status('U krye: ' + esc(label || cmd), 'ok');
+      return r;
+    }).catch(function (e) { S.busy = false; status(esc(String(e)), 'err'); return null; });
+  }
+
+  function filesHtml (r) {
+    if (!r || !r.files || !r.files.length) return '';
+    return '<div class="files">' + r.files.map(function (f) { return '<a data-open="' + esc(f) + '">' + esc(f.split(/[\\/]/).pop()) + '</a>'; }).join('') + '</div>';
+  }
+
+  document.addEventListener('click', function (e) {
+    const a = e.target.closest('[data-open]');
+    if (a) { call('open', { path: a.getAttribute('data-open') }); }
+  });
+  $('openFolder').onclick = function () { call('open', {}); };
+
+  // ---------------------------------------------------------------- navigimi
+  function buildNav () {
+    $('nav').innerHTML = SECTIONS.map(function (s) {
+      return '<button data-s="' + s[0] + '" title="' + s[1] + '"><svg viewBox="0 0 24 24">' + I[s[0]] + '</svg>' + s[1] + '</button>';
+    }).join('');
+    $('nav').onclick = function (e) { const b = e.target.closest('button'); if (b) open(b.getAttribute('data-s')); };
+  }
+
+  function open (section) {
+    S.section = section;
+    Array.prototype.forEach.call($('nav').children, function (b) { b.classList.toggle('on', b.getAttribute('data-s') === section); });
+    const r = RENDER[section] || RENDER.profile;
+    $('main').innerHTML = r();
+    if (BIND[section]) BIND[section]();
+    $('main').scrollTop = 0;
+  }
+
+  // ---------------------------------------------------------------- seksionet
+  const OFFICE_FIELDS = [['kompania', 'Kompania / Studio'], ['arkitekti', 'Arkitekti përgjegjës'], ['titulli', 'Titulli (p.sh. Mr.sc. Arkitekt)'], ['licenca', 'Nr. i licencës'],
+    ['adresa', 'Adresa'], ['telefoni', 'Telefoni'], ['email', 'Email'], ['web', 'Web-faqja']];
+
+  const RENDER = {
+    profile: function () {
+      const fields = (S.catalog && S.catalog.projectFields) || [];
+      const phases = (S.catalog && S.catalog.phases) || [];
+      let h = '<h2>Profili i zyrës dhe projekti</h2><p class="sub">Të dhënat shfaqen në fletat, përshkrimin teknik dhe në Project Info të Archicad-it.</p>';
+      h += '<div class="card"><h3>Profili i zyrës</h3>';
+      OFFICE_FIELDS.forEach(function (f) { h += '<label class="f"><span>' + f[1] + '</span><input type="text" data-office="' + f[0] + '" value="' + esc(S.office[f[0]] || '') + '"></label>'; });
+      h += '<label class="f"><span>Projektuesit e fazave (një për rresht)</span><textarea data-office="projektuesit">' + esc(Array.isArray(S.office.projektuesit) ? S.office.projektuesit.join('\n') : (S.office.projektuesit || '')) + '</textarea></label>';
+      h += '<div class="btns"><button class="b" id="saveOffice">Ruaj profilin</button></div></div>';
+      h += '<div class="card"><h3>Të dhënat e projektit</h3>';
+      fields.forEach(function (f) {
+        if (f.key === 'faza') {
+          h += '<label class="f"><span>' + esc(f.label) + '</span><select data-proj="faza">' + phases.map(function (p) {
+            return '<option value="' + esc(p.name) + '"' + (S.project.faza === p.name ? ' selected' : '') + '>' + esc(p.code + ' – ' + p.name) + '</option>'; }).join('') + '</select></label>';
+        } else if (f.key === 'komuna') {
+          h += '<label class="f"><span>' + esc(f.label) + '</span><select data-proj="komuna">' + (S.catalog.cities || []).map(function (c) {
+            return '<option' + (S.project.komuna === c.name ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></label>';
+        } else {
+          h += '<label class="f"><span>' + esc(f.label) + '</span><input type="' + (f.number ? 'number' : 'text') + '" step="any" data-proj="' + f.key + '" placeholder="' + esc(f.example || '') + '" value="' + esc(S.project[f.key] == null ? '' : S.project[f.key]) + '"></label>';
+        }
+      });
+      h += '<label class="chk"><input type="checkbox" id="pushInfo" checked><span>Shkruaj edhe në <b>Project Info</b> të Archicad-it</span></label>';
+      h += '<div class="btns"><button class="b" id="saveProject">Ruaj projektin</button></div></div>';
+      return h;
+    },
+
+    template: function () {
+      const c = S.catalog || {};
+      let h = '<h2>Template i punës në shqip</h2><p class="sub">Shtresat, kombinimet, View Map dhe Layout Book sipas fazave të dokumentimit (Ligji Nr. 04/L-110, UA MMPH 06/2017).</p>';
+      h += '<div class="card"><h3>Fazat</h3>';
+      (c.phases || []).forEach(function (p) {
+        h += '<div class="phase"><label class="chk"><input type="checkbox" data-phase="' + p.code + '" checked><span><b>' + p.code + ' – ' + esc(p.name) + '</b><small>' + esc(p.purpose) + '</small></span></label>';
+        h += '<details><summary>Dokumentet dhe fletat (' + (p.sheets || []).length + ')</summary><ul>' + (p.documents || []).map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>';
+        h += '<ul>' + (p.sheets || []).map(function (s) { return '<li>' + esc(s.d + ' · ' + s.name + (s.scale ? ' ' + s.scale : '') + (s.perStorey ? ' (për çdo kat)' : '')) + '</li>'; }).join('') + '</ul></details></div>';
+      });
+      h += '</div><div class="card"><h3>Çfarë krijohet</h3>';
+      [['layers', 'Shtresat (' + ((c.layers || []).length) + ') – A, K, S, I, D, P, X'], ['combinations', 'Kombinimet e shtresave (' + ((c.combinations || []).length) + ')'],
+       ['viewMap', 'View Map: dosje për çdo fazë + pamjet e kateve, prerjeve dhe fasadave me shkallë'], ['layoutBook', 'Layout Book: subset për fazë dhe disiplinë, fletat dhe masterat A4–A1'],
+       ['perStorey', 'Fleta të veçanta për çdo kat']].forEach(function (o) {
+        h += '<label class="chk"><input type="checkbox" data-opt="' + o[0] + '" checked><span>' + esc(o[1]) + '</span></label>';
+      });
+      const n = c.naming || {};
+      h += '<p class="note">Emërtimi: <b>' + esc(n.sheet || '') + '</b> · skedarët: <b>' + esc(n.file || '') + '</b><br>' + esc(n.example || '') + '</p>';
+      h += '<div class="btns"><button class="b" id="runTemplate">Krijo template-in</button></div><div id="tplReport"></div></div>';
+      h += '<p class="note">Pas krijimit: Skedari › Ruaj si… › <b>Archicad Project Template (.tpl)</b> – për ta përdorur si template të zyrës.</p>';
+      return h;
+    },
+
+    composites: function () {
+      const list = (S.catalog && S.catalog.composites) || [];
+      const groups = [['wall', 'Muret'], ['slab', 'Dyshemetë, pllakat dhe themelet'], ['roof', 'Kulmet']];
+      let h = '<h2>Kompozitat e materialeve</h2><p class="sub">Materiale të përdorura në Kosovë me λ, ρ, c dhe kontroll U sipas ' + esc((S.catalog && S.catalog.umaxSource) || '') + '.</p><div class="card">';
+      groups.forEach(function (g) {
+        h += '<div class="grp">' + g[1] + '</div>';
+        list.filter(function (c) { return c.usage === g[0]; }).forEach(function (c) {
+          const badge = c.umax > 0 ? (c.compliant ? '<span class="badge">U ' + num(c.u, 3) + ' ≤ ' + num(c.umax) + '</span>' : '<span class="badge e">U ' + num(c.u, 3) + ' &gt; ' + num(c.umax) + '</span>') : '<span class="badge w">U ' + num(c.u, 2) + '</span>';
+          h += '<div class="comp" data-code="' + c.code + '"><div class="h"><input type="checkbox" data-comp="' + c.code + '" checked><div class="n"><b>' + esc(c.code) + '</b> ' + esc(c.name) + '<small>' + num(c.thickness / 10, 1) + ' cm · ' + esc(c.umaxLabel || 'pa kërkesë U') + '</small></div>' + badge + '</div>';
+          h += '<div class="layers">' + layerBar(c) + '<table>' + c.layers.map(function (l) { return '<tr><td>' + esc(l.material) + (l.vent ? ' <i class="note">(vent.)</i>' : '') + '</td><td class="r">' + num(l.d / 10, l.d < 10 ? 2 : 1) + ' cm</td><td class="r">λ ' + num(l.lambda, 3) + '</td></tr>'; }).join('') + '</table><p class="note">' + esc(c.description) + '</p></div></div>';
+        });
+      });
+      h += '</div><label class="chk"><input type="checkbox" id="updComp"><span>Përditëso kompozitat dhe materialet ekzistuese me të njëjtin emër</span></label>';
+      h += '<div class="btns"><button class="b" id="mkComp">Krijo në Archicad</button><button class="b s" id="allComp">Zgjidh / hiq të gjitha</button></div><div id="compReport"></div>';
+      return h;
+    },
+
+    techdesc: function () {
+      let h = '<h2>Përshkrimi teknik</h2><p class="sub">Dokument Word (.doc) me 12 kapituj, i plotësuar nga të dhënat e projektit dhe modeli.</p>';
+      h += '<div class="card"><h3>Përmbajtja</h3><div class="kv"><b>1–3</b><span>Të dhënat e përgjithshme, baza ligjore, lokacioni dhe treguesit urbanistikë</span><b>4</b><span>Zgjidhja funksionale – tabela e sipërfaqeve nga zonat</span><b>5–7</b><span>Konstruksioni, kompozitat e përdorura, dyert dhe dritaret</span><b>8</b><span>Performanca energjetike – U vs U<sub>max</sub></span><b>9–12</b><span>Zjarri, qasja, instalimet, mjedisi</span></div></div>';
+      h += '<p class="note">Fushat që mungojnë shënohen me të verdhë në dokument. Plotësoni ato te «Projekti».</p>';
+      h += '<div class="btns"><button class="b" id="mkTech">Gjenero përshkrimin teknik</button></div><div id="techOut"></div>';
+      return h;
+    },
+
+    physics: function () {
+      const used = (S.model && S.model.composites) || [];
+      let h = '<h2>Fizika ndërtimore nga modeli</h2><p class="sub">Koeficienti U (SK EN ISO 6946), kontrolli U<sub>max</sub> dhe difuzioni i avullit (Glaser) për kompozitat e përdorura.</p>';
+      h += '<div class="card"><h3>Kompozitat në model</h3>';
+      if (!used.length) h += '<p class="note">Nuk u gjetën kompozita ARBS në model (ose modeli nuk është lexuar). Elaborati do të përfshijë të gjitha kompozitat e mbështjellësit.</p>';
+      used.forEach(function (c) { h += '<label class="chk"><input type="checkbox" data-phys="' + esc(c.code) + '" checked><span><b>' + esc(c.code) + '</b> ' + esc(c.name.replace(c.code + ' ', '')) + '<small>' + num(c.area, 1) + ' m²</small></span></label>'; });
+      h += '<div class="btns"><button class="b s" id="readModel">Lexo modelin</button></div></div>';
+      h += '<div class="btns"><button class="b" id="mkPhys">Gjenero elaboratin (HTML + Word)</button></div><div id="physOut"></div>';
+      return h;
+    },
+
+    insolation: function () {
+      const cities = (S.catalog && S.catalog.cities) || [];
+      const cur = S.project.komuna_id || 'prishtine';
+      let h = '<h2>Insolimi dhe lokacioni</h2><p class="sub">Diagrami i diellit, orët e insolimit sipas orientimit dhe hijet për datat karakteristike.</p><div class="card"><h3>Lokacioni</h3>';
+      h += '<label class="f"><span>Komuna</span><select id="insCity">' + cities.map(function (c) { return '<option value="' + c.id + '"' + (c.id === cur ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></label>';
+      h += '<div class="row"><label class="f"><span>Gjerësia (°)</span><input type="number" step="any" id="insLat" placeholder="nga komuna"></label><label class="f"><span>Gjatësia (°)</span><input type="number" step="any" id="insLon" placeholder="nga komuna"></label><label class="f"><span>Lartësia (m)</span><input type="number" step="any" id="insAlt" placeholder="auto"></label></div>';
+      h += '<div class="btns"><button class="b s" id="setLoc">Vendos lokacionin në Archicad (21.12, 12:00)</button></div></div>';
+      h += '<div class="card"><h3>Studimi</h3><div class="row"><label class="f"><span>Lartësia e objektit H (m)</span><input type="number" step="any" id="insH" value="' + esc(S.project.lartesia || 9) + '"></label><label class="f"><span>Viti</span><input type="number" id="insY" value="' + new Date().getFullYear() + '"></label><label class="f"><span>Kriteri (orë)</span><input type="number" step="0.5" id="insMin" value="2"></label></div>';
+      h += '<div class="btns"><button class="b" id="mkIns">Gjenero skemën e insolimit</button></div><div id="insOut"></div></div>';
+      return h;
+    },
+
+    schedules: function () {
+      let h = '<h2>Skemat</h2><p class="sub">Lexohen nga modeli, grupohen sipas tipit dhe dimensioneve; eksportohen në HTML (printim/PDF) dhe CSV (Excel).</p>';
+      h += '<label class="chk"><input type="checkbox" id="selOnly"><span>Vetëm elementet e selektuara</span></label><div class="tiles">';
+      [['door', 'Skema e dyerve', 'D01… me pamje, B×H, pragu, sasia, katet'], ['window', 'Skema e dritareve', 'W01… me pamje, parapeti dhe Uw ≤ 1,60'],
+       ['inventory', 'Skema e inventarit', 'Mobilieri, sanitaria, ndriçimi sipas kateve'], ['zones', 'Tabela e sipërfaqeve', 'Zonat sipas kateve me totale']].forEach(function (t) {
+        h += '<button class="tile" data-sched="' + t[0] + '"><b>' + t[1] + '</b><small>' + t[2] + '</small></button>';
+      });
+      h += '</div><div id="schedOut" style="margin-top:10px"></div>';
+      return h;
+    },
+
+    plan: function () {
+      const p = (S.plan && S.plan.params) || {};
+      const m = S.model || {};
+      const area = p.area || (m.netArea ? Math.round(m.netArea * 1.18) : (S.project.bts || 300));
+      let h = '<h2>Plani dinamik</h2><p class="sub">Ditë pune sipas kalendarit të Kosovës: zbriten fundjavat dhe festat zyrtare (' + esc((S.catalog && S.catalog.law) || '') + '), me zhvendosjen kur bien në fundjavë.</p><div class="card">';
+      h += '<div class="row"><label class="f"><span>Fillimi i punimeve</span><input type="date" id="plStart" value="' + esc(p.start || defaultStart()) + '"></label><label class="f"><span>BTS (m²)</span><input type="number" id="plArea" value="' + esc(area) + '"></label></div>';
+      h += '<div class="row"><label class="f"><span>Kate mbi tokë</span><input type="number" id="plUp" min="1" value="' + esc(p.floorsAbove || m.floorsAbove || 2) + '"></label><label class="f"><span>Kate nëntokë</span><input type="number" id="plDown" min="0" value="' + esc(p.floorsBelow != null ? p.floorsBelow : (m.floorsBelow || 0)) + '"></label></div>';
+      h += '<label class="chk"><input type="checkbox" id="plSat"' + (p.saturday ? ' checked' : '') + '><span>E shtuna ditë pune</span></label>';
+      h += '<label class="chk"><input type="checkbox" id="plWinter"' + (p.winter === false ? '' : ' checked') + '><span>Pa punë të ndjeshme ndaj motit 15.12 – 28.02<small>betonime, fasada, hidroizolime, kulmi</small></span></label>';
+      h += '<label class="f"><span>Pushime kolektive (një për rresht: 2027-08-01 – 2027-08-15)</span><textarea id="plLeave" placeholder="2027-08-01 – 2027-08-15">' + esc((p.leave || []).map(function (l) { return l.from + ' – ' + l.to; }).join('\n')) + '</textarea></label>';
+      h += '<div class="btns"><button class="b" id="mkPlan">Llogarit dhe eksporto</button><button class="b s" id="prevPlan">Vetëm llogarit</button></div></div><div id="planOut"></div>';
+      return h;
+    },
+  };
+
+  function defaultStart () { const d = new Date(); d.setMonth(d.getMonth() + 1); d.setDate(1); return d.toISOString().slice(0, 10); }
+
+  function layerBar (c) {
+    const colors = { 'Konstruksion': '#b9bfc6', 'Murature': '#d99a73', 'Termoizolim': '#f4e27a', 'Membrana': '#3b4a5a', 'Suva': '#ece7dc', 'Fasadë': '#ece7dc', 'Dysheme': '#c8b28c', 'Dru': '#b8875a', 'Dheu': '#a59a83' };
+    const total = c.layers.reduce(function (a, l) { return a + l.d; }, 0) || 1;
+    return '<div class="bar">' + c.layers.map(function (l) { return '<i title="' + esc(l.material) + '" style="flex:' + Math.max(l.d / total, 0.015) + ';background:' + (l.vent ? '#fff' : (colors[l.group] || guessColor(l.material))) + '"></i>'; }).join('') + '</div>';
+  }
+  function guessColor (name) {
+    name = name.toLowerCase();
+    if (/eps|xps|lesh|pir|polistiren/.test(name)) return '#f4e27a';
+    if (/beton/.test(name)) return '#b9bfc6';
+    if (/bllok|tull/.test(name)) return '#d99a73';
+    if (/membran|hidroizol|folie|barrier|gjeotek|drenazh/.test(name)) return '#3b4a5a';
+    if (/parket|dru|osb|letva/.test(name)) return '#b8875a';
+    if (/pllak|estrih|ngjit/.test(name)) return '#c8b28c';
+    if (/zhavor|substrat/.test(name)) return '#a59a83';
+    return '#ece7dc';
+  }
+
+  // ---------------------------------------------------------------- lidhjet
+  function readInputs (attr) {
+    const o = {};
+    document.querySelectorAll('[' + attr + ']').forEach(function (el) {
+      const k = el.getAttribute(attr);
+      let v = el.value;
+      if (el.type === 'number') v = el.value === '' ? '' : Number(el.value);
+      o[k] = v;
+    });
+    return o;
+  }
+
+  const BIND = {
+    profile: function () {
+      $('saveOffice').onclick = function () {
+        const o = Object.assign({}, S.office, readInputs('data-office'));
+        o.projektuesit = String(o.projektuesit || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+        run('saveOffice', { office: o }, 'Profili i zyrës u ruajt').then(function (r) { if (r && r.ok) S.office = o; });
+      };
+      $('saveProject').onclick = function () {
+        const p = Object.assign({}, S.project, readInputs('data-proj'));
+        const ph = (S.catalog.phases || []).filter(function (x) { return x.name === p.faza; })[0];
+        if (ph) p.faza_kodi = ph.code;
+        const city = (S.catalog.cities || []).filter(function (c) { return c.name === p.komuna; })[0];
+        if (city) p.komuna_id = city.id;
+        run('saveProject', { project: p, pushProjectInfo: $('pushInfo').checked }, 'Të dhënat e projektit u ruajtën').then(function (r) {
+          if (r && r.ok) { S.project = p; $('projName').textContent = (p.nr ? p.nr + ' · ' : '') + (p.emri || 'Projekti'); if (r.projectInfo) status('U ruajt · Project Info: ' + r.projectInfo.set + ' fusha', 'ok'); }
+        });
+      };
+    },
+    template: function () {
+      $('runTemplate').onclick = function () {
+        const phases = []; document.querySelectorAll('[data-phase]').forEach(function (c) { if (c.checked) phases.push(c.getAttribute('data-phase')); });
+        const opt = {}; document.querySelectorAll('[data-opt]').forEach(function (c) { opt[c.getAttribute('data-opt')] = c.checked; });
+        run('setupTemplate', Object.assign({ phases: phases }, opt), 'Template-i u krijua').then(function (r) {
+          if (!r || !r.ok) return;
+          const c = r.report.created || {}, e = r.report.errors || [];
+          $('tplReport').innerHTML = '<div class="kv" style="margin-top:8px"><b>Shtresa</b><span>' + (c.layers || 0) + '</span><b>Kombinime</b><span>' + (c.combinations || 0) + '</span><b>Dosje / pamje</b><span>' + (c.folders || 0) + ' / ' + (c.views || 0) + '</span><b>Subset / fleta</b><span>' + (c.subsets || 0) + ' / ' + (c.layouts || 0) + '</span><b>Masterë</b><span>' + (c.masters || 0) + '</span></div>' +
+            (e.length ? '<p class="note" style="color:var(--err)">' + e.map(esc).join('<br>') + '</p>' : '');
+        });
+      };
+    },
+    composites: function () {
+      document.querySelectorAll('.comp .n').forEach(function (n) { n.onclick = function () { n.closest('.comp').classList.toggle('open'); }; });
+      $('allComp').onclick = function () { const boxes = document.querySelectorAll('[data-comp]'); const all = Array.prototype.every.call(boxes, function (b) { return b.checked; }); boxes.forEach(function (b) { b.checked = !all; }); };
+      $('mkComp').onclick = function () {
+        const codes = []; document.querySelectorAll('[data-comp]').forEach(function (c) { if (c.checked) codes.push(c.getAttribute('data-comp')); });
+        run('createComposites', { codes: codes, update: $('updComp').checked }, 'Kompozitat u krijuan').then(function (r) {
+          if (!r || !r.ok) return;
+          const x = r.report;
+          $('compReport').innerHTML = '<p class="note">Materiale të reja: <b>' + x.materials + '</b> · kompozita të reja: <b>' + x.composites + '</b> · të përditësuara: <b>' + x.updated + '</b>' + (x.errors.length ? '<br><span style="color:var(--err)">' + x.errors.map(esc).join('<br>') + '</span>' : '') + '</p>';
+        });
+      };
+    },
+    techdesc: function () {
+      $('mkTech').onclick = function () { run('technicalDescription', {}, 'Përshkrimi teknik u gjenerua').then(function (r) { if (r && r.ok) $('techOut').innerHTML = filesHtml(r); }); };
+    },
+    physics: function () {
+      $('readModel').onclick = function () { run('modelSummary', {}, 'Modeli u lexua').then(function (r) { if (r && r.ok) { S.model = r; open('physics'); } }); };
+      $('mkPhys').onclick = function () {
+        const codes = []; document.querySelectorAll('[data-phys]').forEach(function (c) { if (c.checked) codes.push(c.getAttribute('data-phys')); });
+        run('buildingPhysics', { codes: codes }, 'Elaborati i fizikës u gjenerua').then(function (r) { if (r && r.ok) $('physOut').innerHTML = filesHtml(r); });
+      };
+    },
+    insolation: function () {
+      function params () { return { cityId: $('insCity').value, lat: Number($('insLat').value) || 0, lon: Number($('insLon').value) || 0, alt: Number($('insAlt').value) || 0 }; }
+      $('setLoc').onclick = function () { run('setLocation', Object.assign(params(), { date: $('insY').value + '-12-21', hour: 12 }), 'Lokacioni u vendos në Archicad'); };
+      $('mkIns').onclick = function () {
+        run('insolation', Object.assign(params(), { height: Number($('insH').value) || 9, year: Number($('insY').value) || 2026, minSunHours: Number($('insMin').value) || 2 }), 'Skema e insolimit u gjenerua')
+          .then(function (r) { if (r && r.ok) $('insOut').innerHTML = filesHtml(r); });
+      };
+    },
+    schedules: function () {
+      document.querySelectorAll('[data-sched]').forEach(function (b) {
+        b.onclick = function () {
+          run('schedule', { kind: b.getAttribute('data-sched'), selectionOnly: $('selOnly').checked }, b.querySelector('b').textContent + ' u gjenerua')
+            .then(function (r) { if (r && r.ok) $('schedOut').innerHTML = '<p class="note">Elemente: <b>' + (r.count || 0) + '</b></p>' + filesHtml(r); });
+        };
+      });
+    },
+    plan: function () {
+      function params (exp) {
+        const leave = $('plLeave').value.split('\n').map(function (l) { const m = l.match(/(\d{4}-\d{2}-\d{2}).*?(\d{4}-\d{2}-\d{2})/); return m ? { from: m[1], to: m[2], name: 'Pushim kolektiv' } : null; }).filter(Boolean);
+        return { start: $('plStart').value, area: Number($('plArea').value) || 300, floorsAbove: Number($('plUp').value) || 1, floorsBelow: Number($('plDown').value) || 0,
+                 saturday: $('plSat').checked, winter: $('plWinter').checked, leave: leave, export: exp };
+      }
+      function show (r) {
+        if (!r || !r.ok) return;
+        S.plan = { params: params(false), tasks: r.tasks };
+        let h = '<div class="card"><h3>Rezultati</h3><div class="kv"><b>Fillimi</b><span>' + fmt(r.start) + '</span><b>Përfundimi</b><span>' + fmt(r.finish) + '</span><b>Ditë pune</b><span>' + r.workingDays + '</span><b>Ditë kalendarike</b><span>' + r.calendarDays + '</span></div>' + filesHtml(r) + '</div>';
+        h += '<div class="card"><h3>Pozicionet</h3><table class="t"><tr><th>WBS</th><th>Pozicioni</th><th class="r">Ditë</th><th class="r">Fillimi</th><th class="r">Mbarimi</th></tr>' +
+          r.tasks.map(function (t) { return '<tr' + (t.critical ? ' class="crit"' : '') + '><td>' + esc(t.wbs) + '</td><td>' + esc(t.name) + '</td><td class="r">' + t.duration + '</td><td class="r">' + fmt(t.start) + '</td><td class="r">' + fmt(t.finish) + '</td></tr>'; }).join('') + '</table><p class="note">Vija e kuqe = rruga kritike.</p></div>';
+        h += '<div class="card"><h3>Festat që zbriten</h3><table class="t"><tr><th>Festa</th><th class="r">Dita jo-pune</th></tr>' +
+          r.holidays.map(function (x) { return '<tr><td>' + esc(x.name) + (x.shifted ? ' <span class="badge w">zhvendosur</span>' : '') + (x.estimated ? ' <span class="badge w">parashikim</span>' : '') + '</td><td class="r">' + fmt(x.observed) + '</td></tr>'; }).join('') + '</table></div>';
+        $('planOut').innerHTML = h;
+      }
+      $('mkPlan').onclick = function () { run('dynamicPlan', params(true), 'Plani dinamik u gjenerua').then(show); };
+      $('prevPlan').onclick = function () { run('dynamicPlan', params(false), 'Plani u llogarit').then(show); };
+    }
+  };
+
+  function fmt (iso) { if (!iso) return ''; const p = String(iso).split('-'); return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : iso; }
+
+  // ---------------------------------------------------------------- nisja
+  window.ARBSUI = {
+    open: function (s) { open(s); },
+    onSelectionChanged: function () { }
+  };
+
+  buildNav();
+  call('init', {}).then(function (r) {
+    if (!r || !r.ok) { status(esc((r && r.error) || 'Nisja dështoi.'), 'err'); open('profile'); return; }
+    S.catalog = r.catalog; S.office = r.office || {}; S.project = r.project || {}; S.plan = r.plan || {};
+    if (r.logo) $('logo').src = r.logo;
+    $('ver').textContent = 'v' + r.version;
+    if (S.project.emri) $('projName').textContent = (S.project.nr ? S.project.nr + ' · ' : '') + S.project.emri;
+    if (r.catalogError) status('Të dhënat: ' + esc(r.catalogError), 'err');
+    else status('Gati · dokumentet ruhen në: ' + esc(r.folder || ''));
+    open(S.section);
+    call('modelSummary', {}).then(function (m) { if (m && m.ok) S.model = m; });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+// ARBS Studio - Shablloni i planit dinamik per nje objekt banimi / afarist
+// "duration": numer ose formule { base, perFloor (kate mbi toke), perBasement, per100m2 (BTS), min, max }
+// "after": lista e paraardhesve: "id" (FS) ose { "id", "type": "FS"|"SS", "lag": dite pune }
+// "weather": true = pune e ndjeshme ndaj motit (perjashtohet ne periudhen dimerore)
+// "when": "basement" | "noBasement" | "multiStorey"
+{
+  "version": 1,
+  "name": "Objekt banimi / afarist (P+n, me ose pa bodrum)",
+  "groups": [
+    { "name": "1. Punimet përgatitore", "tasks": [
+      { "id": "njoftimi", "name": "Njoftimi për fillimin e punimeve dhe hapja e ditarit të ndërtimit", "duration": 0, "notes": "UA (MMPH) Nr. 05/2017; UA Nr. 15/2013 për ditarin e ndërtimit" },
+      { "id": "kantieri", "name": "Rrethimi dhe organizimi i kantierit, tabela informuese", "duration": { "base": 4, "per100m2": 0.3, "max": 10 }, "after": ["njoftimi"], "crew": "Kontraktori" },
+      { "id": "shenjimi", "name": "Shënjimi gjeodezik i objektit dhe boshteve", "duration": 2, "after": [{ "id": "kantieri", "type": "SS", "lag": 2 }], "crew": "Gjeodeti" }
+    ]},
+    { "name": "2. Punimet e dheut dhe themelet", "tasks": [
+      { "id": "germimi_b", "name": "Gërmimi i dheut për bodrum dhe largimi i dheut", "when": "basement", "duration": { "base": 4, "per100m2": 1.0, "perBasement": 3 }, "after": ["shenjimi"], "weather": true, "crew": "Makineri" },
+      { "id": "germimi_t", "name": "Gërmimi për themele", "when": "noBasement", "duration": { "base": 2, "per100m2": 0.5 }, "after": ["shenjimi"], "weather": true, "crew": "Makineri" },
+      { "id": "tamponi", "name": "Tampon zhavorri dhe beton i dobët", "duration": { "base": 2, "per100m2": 0.5 }, "after": ["germimi_b", "germimi_t"], "weather": true },
+      { "id": "hid_them", "name": "Hidroizolimi i themeleve", "duration": { "base": 2, "per100m2": 0.3 }, "after": ["tamponi"], "weather": true },
+      { "id": "themelet", "name": "Armimi dhe betonimi i themeleve", "duration": { "base": 6, "per100m2": 1.0 }, "after": ["hid_them"], "weather": true, "crew": "Betonierë, armatues" },
+      { "id": "muret_b", "name": "Muret dhe pllaka e bodrumit (b/a)", "when": "basement", "duration": { "base": 4, "perBasement": 12, "per100m2": 1.0 }, "after": ["themelet"], "weather": true },
+      { "id": "hid_bodrum", "name": "Hidroizolimi, XPS dhe drenazha e mureve të bodrumit, mbushja", "when": "basement", "duration": { "base": 4, "per100m2": 0.5 }, "after": ["muret_b"], "weather": true },
+      { "id": "insp_themele", "name": "Inspektimi i fazës: themelet", "duration": 0, "after": ["themelet"], "notes": "Kërkesë për inspektim sipas UA (MMPH) Nr. 05/2017" }
+    ]},
+    { "name": "3. Konstruksioni dhe kulmi", "tasks": [
+      { "id": "konstr", "name": "Konstruksioni b/a i kateve (kolona, mure, trarë, pllaka)", "duration": { "base": 0, "perFloor": 14, "per100m2": 1.5 }, "after": ["insp_themele", "muret_b"], "weather": true, "crew": "Betonierë, armatues, kallëpxhinj" },
+      { "id": "shkallet", "name": "Shkallët b/a", "duration": { "base": 2, "perFloor": 2 }, "after": [{ "id": "konstr", "type": "SS", "lag": 10 }], "weather": true },
+      { "id": "murature", "name": "Muraturat e jashtme dhe ndarëse", "duration": { "base": 0, "perFloor": 7, "per100m2": 2.0 }, "after": [{ "id": "konstr", "type": "SS", "lag": 14 }], "crew": "Muratorë" },
+      { "id": "kulmi", "name": "Konstruksioni i kulmit", "duration": { "base": 6, "per100m2": 1.0 }, "after": ["konstr"], "weather": true, "crew": "Zdrukthëtarë / betonierë" },
+      { "id": "mbulesa", "name": "Mbulesa e kulmit dhe hidroizolimi", "duration": { "base": 5, "per100m2": 1.0 }, "after": ["kulmi"], "weather": true },
+      { "id": "nen_kulm", "name": "Objekti nën kulm (vrazhdë)", "duration": 0, "after": ["mbulesa", "murature", "shkallet", "hid_bodrum"] },
+      { "id": "insp_konstr", "name": "Inspektimi i fazës: konstruksioni", "duration": 0, "after": ["konstr"] }
+    ]},
+    { "name": "4. Instalimet", "tasks": [
+      { "id": "hidro", "name": "Instalimet hidro-sanitare (shtrirja e gypave)", "duration": { "base": 2, "perFloor": 3, "per100m2": 0.8 }, "after": [{ "id": "murature", "type": "SS", "lag": 8 }], "crew": "Instalues" },
+      { "id": "elektro", "name": "Instalimet elektrike dhe të dobëta (shtrirja)", "duration": { "base": 2, "perFloor": 3, "per100m2": 0.8 }, "after": [{ "id": "hidro", "type": "SS", "lag": 1 }], "crew": "Elektricistë" },
+      { "id": "ngrohja", "name": "Ngrohja qendrore / ventilimi (shtrirja)", "duration": { "base": 2, "perFloor": 3, "per100m2": 0.6 }, "after": [{ "id": "hidro", "type": "SS", "lag": 2 }], "crew": "Instalues" }
+    ]},
+    { "name": "5. Zdrukthtaria e jashtme, suvatimi dhe fasada", "tasks": [
+      { "id": "dritaret", "name": "Dritaret dhe dyert e jashtme (PVC/alumin)", "duration": { "base": 3, "per100m2": 0.8 }, "after": ["nen_kulm"], "crew": "Montues" },
+      { "id": "suvatimi", "name": "Suvatimi i brendshëm", "duration": { "base": 2, "perFloor": 5, "per100m2": 1.5 }, "after": ["hidro", "elektro", "ngrohja", "dritaret"], "crew": "Suvatues" },
+      { "id": "estrihi", "name": "Estrihi (dysheme lundruese) me termo/zë-izolim", "duration": { "base": 1, "perFloor": 3, "per100m2": 0.8 }, "after": ["suvatimi"] },
+      { "id": "fasada", "name": "Fasada termike (ETICS) / fasada e ventiluar", "duration": { "base": 6, "per100m2": 2.5 }, "after": [{ "id": "dritaret", "type": "FS", "lag": 2 }], "weather": true, "crew": "Fasaderë" },
+      { "id": "llamarinat", "name": "Llamarinat, ullukët dhe vertikalet", "duration": { "base": 3, "per100m2": 0.4 }, "after": [{ "id": "fasada", "type": "SS", "lag": 5 }], "weather": true }
+    ]},
+    { "name": "6. Punimet përfundimtare", "tasks": [
+      { "id": "pllakat", "name": "Pllakat qeramike (banjo, kuzhinë, hyrje)", "duration": { "base": 2, "perFloor": 4, "per100m2": 1.0 }, "after": [{ "id": "estrihi", "type": "FS", "lag": 7 }], "crew": "Pllakaxhinj" },
+      { "id": "lyerja", "name": "Patinimi dhe lyerja e mureve e tavaneve", "duration": { "base": 2, "perFloor": 5, "per100m2": 1.5 }, "after": [{ "id": "pllakat", "type": "SS", "lag": 3 }], "crew": "Ngjyrues" },
+      { "id": "dyshemete", "name": "Dyshemetë (parket / laminat)", "duration": { "base": 1, "perFloor": 3, "per100m2": 0.8 }, "after": [{ "id": "estrihi", "type": "FS", "lag": 25 }, "lyerja"], "notes": "Pritet tharja e estrihit (lagështia sipas prodhuesit)" },
+      { "id": "dyert_b", "name": "Dyert e brendshme", "duration": { "base": 2, "perFloor": 1 }, "after": ["dyshemete"] },
+      { "id": "montimi", "name": "Montimi i elementeve sanitare, ndriçimit dhe pajisjeve", "duration": { "base": 3, "perFloor": 2 }, "after": ["lyerja", "pllakat"] },
+      { "id": "jashte", "name": "Rregullimi i jashtëm (shtigje, parkingu, gjelbërimi, rrethoja)", "duration": { "base": 6, "per100m2": 1.0 }, "after": [{ "id": "fasada", "type": "FS", "lag": 0 }], "weather": true },
+      { "id": "pastrimi", "name": "Pastrimi përfundimtar dhe largimi i kantierit", "duration": 3, "after": ["dyert_b", "montimi", "jashte", "llamarinat"] }
+    ]},
+    { "name": "7. Pranimi teknik", "tasks": [
+      { "id": "insp_final", "name": "Inspektimi përfundimtar", "duration": 0, "after": ["pastrimi"], "notes": "UA (MMPH) Nr. 05/2017" },
+      { "id": "certifikata", "name": "Kërkesa për certifikatën e përdorimit", "duration": 0, "after": ["insp_final"] }
+    ]}
+  ]
+}

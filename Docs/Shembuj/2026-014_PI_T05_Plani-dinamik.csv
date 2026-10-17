@@ -1,0 +1,35 @@
+﻿WBS;Grupi;Pozicioni;Ditë pune;Fillimi;Mbarimi;Rezerva (ditë);Kritike;Varësitë;Ekipi;Shënime
+1.1;1. Punimet përgatitore;Njoftimi për fillimin e punimeve dhe hapja e ditarit të ndërtimit;0;01.03.2027;01.03.2027;0;po;;;"UA (MMPH) Nr. 05/2017; UA Nr. 15/2013 për ditarin e ndërtimit"
+1.2;1. Punimet përgatitore;Rrethimi dhe organizimi i kantierit, tabela informuese;6;01.03.2027;08.03.2027;0;po;1.1;Kontraktori;
+1.3;1. Punimet përgatitore;Shënjimi gjeodezik i objektit dhe boshteve;2;03.03.2027;04.03.2027;0;po;1.2SS+2;Gjeodeti;
+2.1;2. Punimet e dheut dhe themelet;Gërmimi i dheut për bodrum dhe largimi i dheut;11;05.03.2027;22.03.2027;0;po;1.3;Makineri;
+2.2;2. Punimet e dheut dhe themelet;Tampon zhavorri dhe beton i dobët;4;23.03.2027;26.03.2027;0;po;1.3, 2.1;;
+2.3;2. Punimet e dheut dhe themelet;Hidroizolimi i themeleve;4;30.03.2027;02.04.2027;0;po;2.2;;
+2.4;2. Punimet e dheut dhe themelet;Armimi dhe betonimi i themeleve;10;05.04.2027;19.04.2027;0;po;2.3;Betonierë, armatues;
+2.5;2. Punimet e dheut dhe themelet;Muret dhe pllaka e bodrumit (b/a);20;20.04.2027;21.05.2027;0;po;2.4;;
+2.6;2. Punimet e dheut dhe themelet;Hidroizolimi, XPS dhe drenazha e mureve të bodrumit, mbushja;6;24.05.2027;31.05.2027;47;jo;2.5;;
+2.7;2. Punimet e dheut dhe themelet;Inspektimi i fazës: themelet;0;20.04.2027;20.04.2027;20;jo;2.4;;Kërkesë për inspektim sipas UA (MMPH) Nr. 05/2017
+3.1;3. Konstruksioni dhe kulmi;Konstruksioni b/a i kateve (kolona, mure, trarë, pllaka);34;24.05.2027;08.07.2027;0;po;2.5, 2.7;Betonierë, armatues, kallëpxhinj;
+3.2;3. Konstruksioni dhe kulmi;Shkallët b/a;6;07.06.2027;14.06.2027;37;jo;3.1SS+10;;
+3.3;3. Konstruksioni dhe kulmi;Muraturat e jashtme dhe ndarëse;22;11.06.2027;12.07.2027;17;jo;3.1SS+14;Muratorë;
+3.4;3. Konstruksioni dhe kulmi;Konstruksioni i kulmit;10;09.07.2027;22.07.2027;0;po;3.1;Zdrukthëtarë / betonierë;
+3.5;3. Konstruksioni dhe kulmi;Mbulesa e kulmit dhe hidroizolimi;9;23.07.2027;04.08.2027;0;po;3.4;;
+3.6;3. Konstruksioni dhe kulmi;Objekti nën kulm (vrazhdë);0;05.08.2027;05.08.2027;0;po;2.6, 3.2, 3.3, 3.5;;
+3.7;3. Konstruksioni dhe kulmi;Inspektimi i fazës: konstruksioni;0;09.07.2027;09.07.2027;101;jo;3.1;;
+4.1;4. Instalimet;Instalimet hidro-sanitare (shtrirja e gypave);12;23.06.2027;08.07.2027;25;jo;3.3SS+8;Instalues;
+4.2;4. Instalimet;Instalimet elektrike dhe të dobëta (shtrirja);12;24.06.2027;09.07.2027;25;jo;4.1SS+1;Elektricistë;
+4.3;4. Instalimet;Ngrohja qendrore / ventilimi (shtrirja);11;25.06.2027;09.07.2027;25;jo;4.1SS+2;Instalues;
+5.1;5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Dritaret dhe dyert e jashtme (PVC/alumin);7;05.08.2027;13.08.2027;0;po;3.6;Montues;
+5.2;5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Suvatimi i brendshëm;18;16.08.2027;08.09.2027;0;po;5.1, 4.3, 4.2, 4.1;Suvatues;
+5.3;5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Estrihi (dysheme lundruese) me termo/zë-izolim;11;09.09.2027;23.09.2027;0;po;5.2;;
+5.4;5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Fasada termike (ETICS) / fasada e ventiluar;16;18.08.2027;08.09.2027;44;jo;5.1+2;Fasaderë;
+5.5;5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Llamarinat, ullukët dhe vertikalet;5;25.08.2027;31.08.2027;60;jo;5.4SS+5;;
+6.1;6. Punimet përfundimtare;Pllakat qeramike (banjo, kuzhinë, hyrje);14;05.10.2027;22.10.2027;0;po;5.3+7;Pllakaxhinj;
+6.2;6. Punimet përfundimtare;Patinimi dhe lyerja e mureve e tavaneve;18;08.10.2027;02.11.2027;0;po;6.1SS+3;Ngjyrues;
+6.3;6. Punimet përfundimtare;Dyshemetë (parket / laminat);11;03.11.2027;17.11.2027;0;po;6.2, 5.3+25;;Pritet tharja e estrihit (lagështia sipas prodhuesit)
+6.4;6. Punimet përfundimtare;Dyert e brendshme;4;18.11.2027;23.11.2027;0;po;6.3;;
+6.5;6. Punimet përfundimtare;Montimi i elementeve sanitare, ndriçimit dhe pajisjeve;7;03.11.2027;11.11.2027;8;jo;6.1, 6.2;;
+6.6;6. Punimet përfundimtare;Rregullimi i jashtëm (shtigje, parkingu, gjelbërimi, rrethoja);10;09.09.2027;22.09.2027;44;jo;5.4;;
+6.7;6. Punimet përfundimtare;Pastrimi përfundimtar dhe largimi i kantierit;3;24.11.2027;26.11.2027;0;po;5.5, 6.6, 6.5, 6.4;;
+7.1;7. Pranimi teknik;Inspektimi përfundimtar;0;29.11.2027;29.11.2027;0;po;6.7;;UA (MMPH) Nr. 05/2017
+7.2;7. Pranimi teknik;Kërkesa për certifikatën e përdorimit;0;29.11.2027;29.11.2027;0;po;7.1;;

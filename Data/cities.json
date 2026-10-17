@@ -1,0 +1,51 @@
+// ARBS Studio - Komunat e Republikes se Kosoves (qendra e komunes)
+// Koordinatat jane te perafërta (WGS84). Per studimin e insolimit vendosni
+// koordinatat e sakta te parceles (nga Gjeoportali i AKK / KosovaREF01).
+{
+  "version": 1,
+  "timezone": { "name": "Europe/Belgrade (CET/CEST)", "baseUtcOffset": 1, "euDst": true },
+  "glaser": {
+    "default": { "thetaI": 20, "phiI": 0.60, "thetaE": -10, "phiE": 0.90, "condDays": 60, "dryTheta": 18, "dryPhi": 0.65, "dryDays": 90 },
+    "note": "Kushtet e metodës Glaser (periudha e kondensimit 60 ditë, e tharjes 90 ditë). Projektuesi mund t'i ndryshojë sipas metodologjisë së zbatuar."
+  },
+  "cities": [
+    { "id": "prishtine",     "name": "Prishtinë",          "lat": 42.6629, "lon": 21.1655, "alt": 652 },
+    { "id": "prizren",       "name": "Prizren",            "lat": 42.2139, "lon": 20.7397, "alt": 430 },
+    { "id": "peje",          "name": "Pejë",               "lat": 42.6593, "lon": 20.2887, "alt": 505 },
+    { "id": "gjakove",       "name": "Gjakovë",            "lat": 42.3803, "lon": 20.4308, "alt": 360 },
+    { "id": "mitrovice",     "name": "Mitrovicë",          "lat": 42.8914, "lon": 20.8660, "alt": 510 },
+    { "id": "ferizaj",       "name": "Ferizaj",            "lat": 42.3702, "lon": 21.1553, "alt": 585 },
+    { "id": "gjilan",        "name": "Gjilan",             "lat": 42.4635, "lon": 21.4694, "alt": 520 },
+    { "id": "vushtrri",      "name": "Vushtrri",           "lat": 42.8231, "lon": 20.9675, "alt": 525 },
+    { "id": "podujeve",      "name": "Podujevë",           "lat": 42.9106, "lon": 21.1932, "alt": 590 },
+    { "id": "rahovec",       "name": "Rahovec",            "lat": 42.3994, "lon": 20.6547, "alt": 400 },
+    { "id": "suhareke",      "name": "Suharekë",           "lat": 42.3580, "lon": 20.8250, "alt": 430 },
+    { "id": "lipjan",        "name": "Lipjan",             "lat": 42.5217, "lon": 21.1259, "alt": 570 },
+    { "id": "drenas",        "name": "Drenas",             "lat": 42.6250, "lon": 20.8930, "alt": 580 },
+    { "id": "malisheve",     "name": "Malishevë",          "lat": 42.4828, "lon": 20.7458, "alt": 450 },
+    { "id": "skenderaj",     "name": "Skënderaj",          "lat": 42.7467, "lon": 20.7889, "alt": 600 },
+    { "id": "kamenice",      "name": "Kamenicë",           "lat": 42.5781, "lon": 21.5803, "alt": 530 },
+    { "id": "viti",          "name": "Viti",               "lat": 42.3214, "lon": 21.3581, "alt": 560 },
+    { "id": "decan",         "name": "Deçan",              "lat": 42.5402, "lon": 20.2879, "alt": 550 },
+    { "id": "istog",         "name": "Istog",              "lat": 42.7808, "lon": 20.4875, "alt": 470 },
+    { "id": "kline",         "name": "Klinë",              "lat": 42.6217, "lon": 20.5778, "alt": 410 },
+    { "id": "kacanik",       "name": "Kaçanik",            "lat": 42.2319, "lon": 21.2592, "alt": 470 },
+    { "id": "shtime",        "name": "Shtime",             "lat": 42.4331, "lon": 21.0397, "alt": 610 },
+    { "id": "obiliq",        "name": "Obiliq",             "lat": 42.6869, "lon": 21.0703, "alt": 560 },
+    { "id": "fushe-kosove",  "name": "Fushë Kosovë",       "lat": 42.6639, "lon": 21.0961, "alt": 545 },
+    { "id": "dragash",       "name": "Dragash",            "lat": 42.0614, "lon": 20.6531, "alt": 1050 },
+    { "id": "shterpce",      "name": "Shtërpcë",           "lat": 42.2394, "lon": 21.0272, "alt": 900 },
+    { "id": "novoberde",     "name": "Novobërdë",          "lat": 42.6164, "lon": 21.4339, "alt": 1000 },
+    { "id": "hani-elezit",   "name": "Hani i Elezit",      "lat": 42.1503, "lon": 21.2967, "alt": 380 },
+    { "id": "junik",         "name": "Junik",              "lat": 42.4761, "lon": 20.2775, "alt": 640 },
+    { "id": "mamushe",       "name": "Mamushë",            "lat": 42.3167, "lon": 20.7250, "alt": 400 },
+    { "id": "gracanice",     "name": "Graçanicë",          "lat": 42.6000, "lon": 21.1933, "alt": 610 },
+    { "id": "ranillug",      "name": "Ranillug",           "lat": 42.4919, "lon": 21.5986, "alt": 620 },
+    { "id": "partesh",       "name": "Partesh",            "lat": 42.4022, "lon": 21.4333, "alt": 550 },
+    { "id": "kllokot",       "name": "Kllokot",            "lat": 42.3667, "lon": 21.3778, "alt": 480 },
+    { "id": "leposaviq",     "name": "Leposaviq",          "lat": 43.1039, "lon": 20.8028, "alt": 540 },
+    { "id": "zubin-potok",   "name": "Zubin Potok",        "lat": 42.9144, "lon": 20.6897, "alt": 570 },
+    { "id": "zvecan",        "name": "Zveçan",             "lat": 42.9078, "lon": 20.8403, "alt": 550 },
+    { "id": "mitrovice-v",   "name": "Mitrovicë e Veriut", "lat": 42.8950, "lon": 20.8650, "alt": 510 }
+  ]
+}

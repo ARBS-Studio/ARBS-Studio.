@@ -1,0 +1,46 @@
+﻿#include "ResourceIds.hpp"
+
+/* ---------------------------------------------------------------------------
+   ARBS Studio - burimet e lokalizueshme (nderfaqja ne shqip)
+   --------------------------------------------------------------------------- */
+
+'STR#' ID_ADDON_INFO "Add-on Name and Description" {
+/* [  1] */		"ARBS Studio"
+/* [  2] */		"ARBS Studio – template i punës në shqip, kompozita, përshkrim teknik, fizikë ndërtimore, insolim, skema dhe plan dinamik sipas legjislacionit të Kosovës."
+}
+
+'STR#' ID_ARBS_MENU "ARBS Studio menu" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Paleta ARBS Studio^ES^EE^EI^ED^EW^E3^EL^10001"
+/* [  2] */		"Template i punës (faza, shtresat, Layout Book)...^ES^EE^EI^ED^EW^E3^EL"
+/* [  3] */		"Kompozitat e materialeve...^ES^EE^EI^ED^EW^E3^EL"
+/* [  4] */		"Përshkrimi teknik...^ES^EE^EI^ED^EW^E3^EL"
+/* [  5] */		"Fizika ndërtimore...^ES^EE^EI^ED^EW^E3^EL"
+/* [  6] */		"Insolimi dhe lokacioni...^ES^EE^EI^ED^EW^E3^EL"
+/* [  7] */		"Skemat e dyerve, dritareve dhe inventarit...^ES^EE^EI^ED^EW^E3^EL"
+/* [  8] */		"Plani dinamik...^ES^EE^EI^ED^EW^E3^EL"
+/* [  9] */		"Profili i zyrës dhe të dhënat e projektit...^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' ID_ARBS_MENU_PROMPT "ARBS Studio menu prompts" {
+/* [   ] */		""
+/* [  1] */		"Hap ose mbyll paletën ARBS Studio"
+/* [  2] */		"Krijon shtresat, kombinimet, View Map dhe Layout Book sipas fazave PK / PI / PKR / PZ"
+/* [  3] */		"Krijon materialet dhe kompozitat tipike të Kosovës me vlerat termike"
+/* [  4] */		"Gjeneron përshkrimin teknik (Word) nga modeli dhe të dhënat e projektit"
+/* [  5] */		"Gjeneron elaboratin e fizikës ndërtimore (U, Glaser) sipas Rregullores MMPH 04/18"
+/* [  6] */		"Vendos lokacionin dhe gjeneron skemën e insolimit"
+/* [  7] */		"Gjeneron skemat e dyerve, dritareve, inventarit dhe sipërfaqeve"
+/* [  8] */		"Plani dinamik me kalendarin e festave zyrtare të Kosovës"
+/* [  9] */		"Profili i zyrës dhe të dhënat e projektit"
+}
+
+/* --- Paleta (toolbar) me kontroll Browser ------------------------------------ */
+
+'GDLG'  ID_ARBS_PALETTE    Palette | topCaption | close | grow   0   0  430  720  "ARBS Studio"  {
+/* [  1] */ Browser			0   0  430  720
+}
+
+'DLGH'  ID_ARBS_PALETTE  DLG_ARBS_Palette {
+1	"ARBS Studio Browser"		Browser_0
+}

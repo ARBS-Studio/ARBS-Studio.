@@ -1,0 +1,48 @@
+// ARBS Studio - Festat zyrtare ne Republiken e Kosoves (dite jo-pune)
+// Baza: Ligji Nr. 03/L-064 per Festat Zyrtare ne Republiken e Kosoves.
+// Neni 4: kur festa bie te shtunen ose te dielen, dita e lire zhvendoset ne diten e
+// pare te punes (ARBS e zhvendos ne diten e pare te punes qe nuk eshte feste tjeter).
+// Datat e Bajrameve caktohen cdo vit me vendim te Qeverise / Bashkesise Islame:
+// vlerat "estimated": true jane parashikime dhe duhet te konfirmohen.
+{
+  "version": 1,
+  "law": "Ligji Nr. 03/L-064 për Festat Zyrtare në Republikën e Kosovës",
+  "weekendShift": true,
+  "fixed": [
+    { "month": 1,  "day": 1,  "name": "Viti i Ri" },
+    { "month": 1,  "day": 2,  "name": "Viti i Ri (dita e dytë)" },
+    { "month": 1,  "day": 7,  "name": "Krishtlindjet Ortodokse" },
+    { "month": 2,  "day": 17, "name": "Dita e Pavarësisë së Republikës së Kosovës" },
+    { "month": 4,  "day": 9,  "name": "Dita e Kushtetutës së Republikës së Kosovës" },
+    { "month": 5,  "day": 1,  "name": "Dita Ndërkombëtare e Punëtorëve" },
+    { "month": 5,  "day": 9,  "name": "Dita e Evropës" },
+    { "month": 12, "day": 25, "name": "Krishtlindjet Katolike" }
+  ],
+  "movable": {
+    "catholicEasterMonday": { "enabled": true, "name": "Pashkët Katolike (e hëna)" },
+    "orthodoxEasterMonday": { "enabled": true, "name": "Pashkët Ortodokse (e hëna)" }
+  },
+  "islamic": {
+    "fitrName": "Bajrami i Vogël (Fitër Bajrami)",
+    "adhaName": "Bajrami i Madh (Kurban Bajrami)",
+    "dates": {
+      "2023": { "fitr": "2023-04-21", "adha": "2023-06-28", "estimated": false },
+      "2024": { "fitr": "2024-04-10", "adha": "2024-06-16", "estimated": false },
+      "2025": { "fitr": "2025-03-30", "adha": "2025-06-06", "estimated": false },
+      "2026": { "fitr": "2026-03-20", "adha": "2026-05-27", "estimated": false },
+      "2027": { "fitr": "2027-03-09", "adha": "2027-05-16", "estimated": true },
+      "2028": { "fitr": "2028-02-26", "adha": "2028-05-05", "estimated": true },
+      "2029": { "fitr": "2029-02-14", "adha": "2029-04-24", "estimated": true },
+      "2030": { "fitr": "2030-02-04", "adha": "2030-04-13", "estimated": true },
+      "2031": { "fitr": "2031-01-24", "adha": "2031-04-02", "estimated": true },
+      "2032": { "fitr": "2032-01-14", "adha": "2032-03-22", "estimated": true },
+      "2033": { "fitr": ["2033-01-02", "2033-12-23"], "adha": "2033-03-11", "estimated": true },
+      "2034": { "fitr": "2034-12-12", "adha": "2034-03-01", "estimated": true },
+      "2035": { "fitr": "2035-12-01", "adha": "2035-02-18", "estimated": true }
+    }
+  },
+  "construction": {
+    "workweek": "E hënë – e premte (40 orë/javë sipas Ligjit të Punës Nr. 03/L-212); e shtuna opsionale",
+    "winterNote": "Punët e ndjeshme ndaj motit (betonime, fasada, hidroizolime, kulmi) mund të përjashtohen automatikisht nga 15 dhjetori deri më 28 shkurt."
+  }
+}

@@ -1,0 +1,164 @@
+// ARBS Studio - Fazat e dokumentimit te projektit sipas legjislacionit ne Republiken e Kosoves
+// Ligji Nr. 04/L-110 per Ndertim; UA (MMPH) Nr. 04/2017 (kategorizimi i ndertimeve);
+// UA (MMPH) Nr. 06/2017 (kushtet ndertimore, lejet ndertimore dhe lejet e rrenimit per kat. I dhe II);
+// UA (MMPH) Nr. 05/2017 (mbikeqyrja inspektuese dhe certifikata e perdorimit).
+// Konventa e emertimit te fletave: <FAZA>-<DISIPLINA><NR> <Emri>   p.sh. "PI-A05 Baza e përdhesës"
+// Konventa e emertimit te skedareve: <NrProj>_<FAZA>_<DISIPLINA><NR>_<Emri>_R<rev>.pdf
+{
+  "version": 1,
+  "naming": {
+    "sheet": "{faza}-{disiplina}{nr}",
+    "file": "{nrProjektit}_{faza}_{disiplina}{nr}_{emri}_R{rev}",
+    "view": "{faza} | {lloji} | {emri} | {shkalla}",
+    "example": "PI-A05 Baza e përdhesës  →  2026-014_PI_A05_Baza-e-perdheses_R0.pdf"
+  },
+  "disciplines": [
+    { "code": "A", "name": "Arkitektura" },
+    { "code": "K", "name": "Konstruksioni" },
+    { "code": "H", "name": "Hidroinstalimet" },
+    { "code": "E", "name": "Elektroinstalimet" },
+    { "code": "M", "name": "Instalimet makinerike (ngrohje, ftohje, ventilim)" },
+    { "code": "Z", "name": "Mbrojtja nga zjarri" },
+    { "code": "F", "name": "Fizika ndërtimore dhe efiçienca energjetike" },
+    { "code": "G", "name": "Gjeodezia" },
+    { "code": "T", "name": "Dokumentacioni tekstual" }
+  ],
+  "phases": [
+    {
+      "code": "PK", "name": "Projekti Konceptual", "order": 1, "combination": "01 PK – Projekti Konceptual",
+      "purpose": "Kërkesa për kushte ndërtimore (Kategoria I dhe II: UA MMPH Nr. 06/2017; Kategoria III: në MMPHI).",
+      "presentation": "Skematike: mure të mbushura (poche), pa detaje, pa kuota të brendshme, me volumet dhe treguesit urbanistikë.",
+      "documents": [
+        "Kërkesa për kushte ndërtimore (formulari i komunës)",
+        "Kopja e planit dhe certifikata e pronësisë (nga Zyra Kadastrale Komunale)",
+        "Përshkrimi i shkurtër i projektit dhe treguesit urbanistikë (sipërfaqja e parcelës, gjurma, BTS, indekset, numri i kateve, lartësia)",
+        "Situacioni me vijën rregulluese, vijën ndërtimore dhe distancat nga kufijtë dhe objektet fqinje",
+        "Pëlqimet (ujësjellësi, energjia elektrike, mbrojtja nga zjarri, mjedisi) – sipas rastit, përmes One Stop Shop ku ekziston"
+      ],
+      "sheets": [
+        { "d": "A", "name": "Faqja e parë", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Përmbajtja", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Makrolokacioni / ortofoto", "scale": "1:2000", "size": "A3" },
+        { "d": "A", "name": "Situacioni", "scale": "1:500", "size": "A3" },
+        { "d": "A", "name": "Bazat skematike", "scale": "1:200", "size": "A3", "perStorey": true },
+        { "d": "A", "name": "Prerja skematike", "scale": "1:200", "size": "A3" },
+        { "d": "A", "name": "Pamjet / volumetria 3D", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Treguesit urbanistikë", "scale": "", "size": "A3" }
+      ]
+    },
+    {
+      "code": "PI", "name": "Projekti Ideor", "order": 2, "combination": "02 PI – Projekti Ideor",
+      "purpose": "Kërkesa për leje ndërtimore për Kategorinë I (UA MMPH Nr. 06/2017). Dorëzohet në 3 kopje fizike dhe 1 kopje digjitale.",
+      "presentation": "Arkitektonike 1:100: mure me shrafura sipas materialit, inventari, zonat me sipërfaqe, kuotat kryesore.",
+      "documents": [
+        "Kërkesa për leje ndërtimore (Shtojca 2 – Kategoria I)",
+        "Përshkrimi teknik i punimeve",
+        "Paramasa dhe parallogaria",
+        "Ortofoto e lokacionit",
+        "Situacioni i gjerë 50 m me objektet ekzistuese dhe të planifikuara",
+        "Situacioni i parcelës me dimensione horizontale e vertikale dhe kuotat (KosovaREF01, kuota relative dhe absolute të hyrjeve)",
+        "Masat e efiçiencës së energjisë dhe të mbrojtjes nga zjarri (ku kërkohen me ligj)",
+        "Kopjet e licencave profesionale të projektuesve",
+        "Deklarata e projektuesve të fazave të nevojshme për projektin kryesor"
+      ],
+      "sheets": [
+        { "d": "A", "name": "Faqja e parë", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Përmbajtja", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Makrolokacioni", "scale": "1:1000", "size": "A3" },
+        { "d": "A", "name": "Situacioni i gjerë", "scale": "1:500", "size": "A3" },
+        { "d": "A", "name": "Plani i situacionit (parcela)", "scale": "1:200", "size": "A3" },
+        { "d": "A", "name": "Gjendja faktike", "scale": "1:200", "size": "A3", "optional": true },
+        { "d": "A", "name": "Baza e themeleve", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Baza", "scale": "1:100", "size": "A3", "perStorey": true },
+        { "d": "A", "name": "Baza e kulmit", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Prerja A-A", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Prerja B-B", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Pamja Veri", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Pamja Jug", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Pamja Lindje", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Pamja Perëndim", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Perspektiva e jashtme", "scale": "", "size": "A3" },
+        { "d": "H", "name": "Plani i kyçjes në ujësjellës dhe kanalizim", "scale": "1:100", "size": "A3" },
+        { "d": "E", "name": "Plani i kyçjes në rrjetin elektrik", "scale": "1:100", "size": "A3" }
+      ]
+    },
+    {
+      "code": "PKR", "name": "Projekti Kryesor", "order": 3, "combination": "03 PKR – Projekti Kryesor – bazat",
+      "purpose": "Kërkesa për leje ndërtimore për Kategorinë II (Shtojca 3, UA MMPH Nr. 06/2017) dhe projekti për realizimin e ndërtimit. Dorëzohet në 3 kopje fizike dhe 1 kopje digjitale.",
+      "presentation": "Teknike 1:100 / 1:50: të gjitha kuotat, materialet sipas kompozitave, lartësitë, hapjet me etiketa, legjenda e materialeve.",
+      "documents": [
+        "Kërkesa për leje ndërtimore (Shtojca 3 – Kategoria II)",
+        "Projekti arkitektonik, projekti i konstruksionit me llogaritjet statike, projektet e instalimeve (hidro, elektro, makinerike)",
+        "Elaborati i mbrojtjes nga zjarri / pëlqimi (sipas rastit)",
+        "Elaborati i fizikës ndërtimore dhe i performancës energjetike (Ligji Nr. 08/L-242; Rregullore MMPH Nr. 04/18)",
+        "Studimi gjeomekanik (nëse kërkohet)",
+        "Përshkrimi teknik, paramasa dhe parallogaria",
+        "Deklaratat e projektuesve dhe kopjet e licencave",
+        "Dëshmia e pagesës së taksave dhe tarifave komunale"
+      ],
+      "sheets": [
+        { "d": "A", "name": "Faqja e parë", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Përmbajtja", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Situacioni", "scale": "1:200", "size": "A3" },
+        { "d": "A", "name": "Plani i nivelimit dhe kyçjeve", "scale": "1:200", "size": "A3" },
+        { "d": "A", "name": "Baza e themeleve", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Baza", "scale": "1:100", "size": "A3", "perStorey": true },
+        { "d": "A", "name": "Baza e kulmit", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Prerja A-A", "scale": "1:50", "size": "A2" },
+        { "d": "A", "name": "Prerja B-B", "scale": "1:50", "size": "A2" },
+        { "d": "A", "name": "Pamjet", "scale": "1:100", "size": "A3" },
+        { "d": "A", "name": "Legjenda e kompozitave", "scale": "1:20", "size": "A3" },
+        { "d": "A", "name": "Tabela e sipërfaqeve", "scale": "", "size": "A3" },
+        { "d": "K", "name": "Plani i themeleve – kallëpi", "scale": "1:100", "size": "A3" },
+        { "d": "K", "name": "Plani i pozicionit", "scale": "1:100", "size": "A3", "perStorey": true },
+        { "d": "H", "name": "Hidroinstalimet – bazat", "scale": "1:100", "size": "A3", "perStorey": true },
+        { "d": "E", "name": "Elektroinstalimet – bazat", "scale": "1:100", "size": "A3", "perStorey": true },
+        { "d": "M", "name": "Instalimet makinerike – bazat", "scale": "1:100", "size": "A3", "perStorey": true },
+        { "d": "Z", "name": "Mbrojtja nga zjarri – rrugët e evakuimit", "scale": "1:100", "size": "A3", "perStorey": true },
+        { "d": "F", "name": "Skema e insolimit dhe orientimi", "scale": "1:500", "size": "A3" }
+      ]
+    },
+    {
+      "code": "PZ", "name": "Projekti Zbatues", "order": 4, "combination": "04 PZ – Projekti Zbatues",
+      "purpose": "Projekti për realizim në kantier (nuk është dokument për leje). Detajon projektin kryesor për kontraktorin; shërben për mbikëqyrje dhe ditarin e ndërtimit (UA Nr. 15/2013).",
+      "presentation": "Zbatuese 1:50 / 1:20 / 1:5: kuota zinxhir, kuota lartësie, detaje, skemat e hapjeve, legjendat e materialeve, shrafura të plota.",
+      "documents": [
+        "Planet zbatuese 1:50 me kuota të plota",
+        "Detajet karakteristike 1:20, 1:10, 1:5",
+        "Skema e dyerve, skema e dritareve dhe skema e inventarit",
+        "Planet e dyshemeve, tavaneve dhe veshjeve",
+        "Specifikimi i materialeve dhe kompozitave",
+        "Plani dinamik i punimeve"
+      ],
+      "sheets": [
+        { "d": "A", "name": "Faqja e parë", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Përmbajtja", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Baza zbatuese", "scale": "1:50", "size": "A1", "perStorey": true },
+        { "d": "A", "name": "Plani i dyshemeve", "scale": "1:50", "size": "A1", "perStorey": true },
+        { "d": "A", "name": "Plani i tavaneve", "scale": "1:50", "size": "A1", "perStorey": true },
+        { "d": "A", "name": "Prerja zbatuese A-A", "scale": "1:50", "size": "A1" },
+        { "d": "A", "name": "Prerja zbatuese B-B", "scale": "1:50", "size": "A1" },
+        { "d": "A", "name": "Fasadat zbatuese", "scale": "1:50", "size": "A1" },
+        { "d": "A", "name": "Shkallët – detaje", "scale": "1:20", "size": "A2" },
+        { "d": "A", "name": "Detajet karakteristike", "scale": "1:10", "size": "A2" },
+        { "d": "A", "name": "Skema e dyerve", "scale": "1:50", "size": "A3" },
+        { "d": "A", "name": "Skema e dritareve", "scale": "1:50", "size": "A3" },
+        { "d": "A", "name": "Skema e inventarit", "scale": "", "size": "A3" },
+        { "d": "A", "name": "Legjenda e kompozitave", "scale": "1:10", "size": "A3" },
+        { "d": "T", "name": "Plani dinamik", "scale": "", "size": "A3" }
+      ]
+    }
+  ],
+  "viewMap": {
+    "root": "ARBS",
+    "folders": [ "Bazat", "Prerjet", "Pamjet", "Detajet", "3D dhe perspektiva", "Skemat dhe listat", "Situacioni", "Insolimi" ]
+  },
+  "categories": {
+    "law": "UA (MMPH) Nr. 04/2017 për kategorizimin e ndërtimeve",
+    "items": [
+      { "code": "I", "description": "Ndërtimet e Kategorisë I – leja lëshohet nga komuna; dokumenti: Projekti Ideor." },
+      { "code": "II", "description": "Ndërtimet e Kategorisë II – leja lëshohet nga komuna; dokumenti: Projekti Kryesor." },
+      { "code": "III", "description": "Ndërtimet e Kategorisë III – leja lëshohet nga Ministria (MMPHI)." }
+    ]
+  }
+}

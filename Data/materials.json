@@ -1,0 +1,57 @@
+// ARBS Studio - Materialet e ndertimit (Building Materials) te perdorura ne Kosove
+// lambda [W/mK] = vlera projektuese; density [kg/m3]; c [J/kgK]; mu [-]
+// Burimi i vlerave: SK EN ISO 10456, SK EN 1745, fletet teknike tipike te prodhuesve ne treg.
+// Projektuesi duhet t'i verifikoje me fleten teknike te produktit te zgjedhur.
+// "fill": emrat e preferuar te shrafures ne Archicad (provohen me radhe); "priority": 0..999
+{
+  "version": 1,
+  "materials": [
+    { "id": "BET-AR",   "name": "Beton i armuar C25/30",               "group": "Konstruksion", "lambda": 2.50, "density": 2500, "c": 1000, "mu": 100,  "priority": 900, "fill": ["Concrete - Structural", "Beton armiert", "Concrete", "Beton"] },
+    { "id": "BET-C30",  "name": "Beton i armuar C30/37",               "group": "Konstruksion", "lambda": 2.50, "density": 2500, "c": 1000, "mu": 130,  "priority": 910, "fill": ["Concrete - Structural", "Concrete", "Beton"] },
+    { "id": "BET-DOB",  "name": "Beton i dobët C12/15 (nënshtresë)",   "group": "Konstruksion", "lambda": 1.65, "density": 2200, "c": 1000, "mu": 60,   "priority": 700, "fill": ["Concrete - Lean", "Concrete", "Beton"] },
+    { "id": "BET-PJE",  "name": "Beton i lehtë për pjerrësi",          "group": "Konstruksion", "lambda": 0.25, "density": 800,  "c": 1000, "mu": 10,   "priority": 400, "fill": ["Concrete - Lightweight", "Concrete", "Beton"] },
+    { "id": "BLL-QER25","name": "Bllok qeramik i zbrazët (tullë me vrima)", "group": "Murature", "lambda": 0.40, "density": 900,  "c": 920,  "mu": 8,    "priority": 650, "fill": ["Masonry - Brick", "Brick", "Mauerwerk", "Tulla"] },
+    { "id": "BLL-QER-N","name": "Bllok qeramik për mure ndarëse",      "group": "Murature",     "lambda": 0.45, "density": 1000, "c": 920,  "mu": 8,    "priority": 600, "fill": ["Masonry - Brick", "Brick", "Tulla"] },
+    { "id": "TUL-PL",   "name": "Tullë e plotë",                       "group": "Murature",     "lambda": 0.78, "density": 1800, "c": 920,  "mu": 10,   "priority": 650, "fill": ["Masonry - Brick", "Brick", "Tulla"] },
+    { "id": "BET-QEL",  "name": "Beton qelizor (bllok AAC)",           "group": "Murature",     "lambda": 0.11, "density": 450,  "c": 1000, "mu": 6,    "priority": 640, "fill": ["Masonry - Block", "Aerated Concrete", "Block"] },
+    { "id": "BLL-BET",  "name": "Bllok betoni",                         "group": "Murature",     "lambda": 1.10, "density": 1800, "c": 1000, "mu": 15,   "priority": 650, "fill": ["Masonry - Block", "Concrete Block", "Block"] },
+    { "id": "LLA-GC",   "name": "Llaç gëlqere-çimento (suva)",         "group": "Suva",         "lambda": 0.87, "density": 1800, "c": 1000, "mu": 15,   "priority": 100, "fill": ["Plaster", "Mortar", "Putz", "Suva"] },
+    { "id": "LLA-ARM",  "name": "Llaç ngjitës-armues me rrjetë",       "group": "Fasadë",       "lambda": 0.80, "density": 1500, "c": 1000, "mu": 20,   "priority": 110, "fill": ["Plaster", "Mortar"] },
+    { "id": "LLA-DEK",  "name": "Llaç dekorativ fasade (silikoni)",    "group": "Fasadë",       "lambda": 0.70, "density": 1800, "c": 1000, "mu": 50,   "priority": 100, "fill": ["Plaster", "Render"] },
+    { "id": "PAT-GIP",  "name": "Patinim gipsi",                       "group": "Suva",         "lambda": 0.40, "density": 1000, "c": 1000, "mu": 10,   "priority": 90,  "fill": ["Plaster", "Gypsum"] },
+    { "id": "GK",       "name": "Pllakë gipskartoni",                  "group": "Suva",         "lambda": 0.25, "density": 900,  "c": 1000, "mu": 8,    "priority": 150, "fill": ["Gypsum Board", "Drywall", "Gipskarton"] },
+    { "id": "EPS-F",    "name": "Polistiren i ekspanduar EPS-F (fasadë)", "group": "Termoizolim", "lambda": 0.038, "density": 16, "c": 1450, "mu": 40,  "priority": 300, "fill": ["Insulation - Rigid", "Insulation", "Dämmung", "Termoizolim"] },
+    { "id": "EPS-G",    "name": "Polistiren grafit EPS-G (fasadë)",    "group": "Termoizolim",  "lambda": 0.031, "density": 16, "c": 1450, "mu": 40,   "priority": 300, "fill": ["Insulation - Rigid", "Insulation"] },
+    { "id": "EPS-150",  "name": "EPS 150 (dysheme, ngarkesë)",          "group": "Termoizolim",  "lambda": 0.035, "density": 25, "c": 1450, "mu": 60,   "priority": 310, "fill": ["Insulation - Rigid", "Insulation"] },
+    { "id": "EPS-200",  "name": "EPS 200 (kulm i rrafshët)",            "group": "Termoizolim",  "lambda": 0.034, "density": 30, "c": 1450, "mu": 60,   "priority": 310, "fill": ["Insulation - Rigid", "Insulation"] },
+    { "id": "EPS-T",    "name": "EPS-T izolim kundër zhurmës goditëse", "group": "Termoizolim", "lambda": 0.040, "density": 12, "c": 1450, "mu": 20,   "priority": 300, "fill": ["Insulation - Soft", "Insulation"] },
+    { "id": "XPS",      "name": "Polistiren i ekstruduar XPS",          "group": "Termoizolim",  "lambda": 0.034, "density": 33, "c": 1450, "mu": 150,  "priority": 320, "fill": ["Insulation - Rigid", "Insulation"] },
+    { "id": "MW-F",     "name": "Lesh guri për fasadë (MW)",            "group": "Termoizolim",  "lambda": 0.037, "density": 130, "c": 1030, "mu": 1,   "priority": 300, "fill": ["Insulation - Mineral", "Insulation - Soft", "Insulation"] },
+    { "id": "MW-K",     "name": "Lesh guri për kulm të rrafshët (MW)",  "group": "Termoizolim",  "lambda": 0.039, "density": 150, "c": 1030, "mu": 1,   "priority": 300, "fill": ["Insulation - Mineral", "Insulation"] },
+    { "id": "MW-S",     "name": "Lesh mineral (mes mahive / ndarëse)",  "group": "Termoizolim",  "lambda": 0.035, "density": 40,  "c": 1030, "mu": 1,   "priority": 290, "fill": ["Insulation - Soft", "Insulation"] },
+    { "id": "PIR",      "name": "Panel sanduiç PIR (bërthama)",         "group": "Termoizolim",  "lambda": 0.022, "density": 40,  "c": 1400, "mu": 100, "priority": 320, "fill": ["Insulation - Rigid", "Insulation"] },
+    { "id": "EST-C",    "name": "Estrih çimentoje",                     "group": "Dysheme",      "lambda": 1.40, "density": 2000, "c": 1000, "mu": 50,  "priority": 200, "fill": ["Screed", "Concrete - Screed", "Estrich", "Concrete"] },
+    { "id": "PLL-QER",  "name": "Pllaka qeramike / granit-porcelan",   "group": "Dysheme",      "lambda": 1.30, "density": 2300, "c": 840,  "mu": 200, "priority": 80,  "fill": ["Tile", "Ceramic", "Fliesen"] },
+    { "id": "NGJ-PLL",  "name": "Ngjitës për pllaka",                   "group": "Dysheme",      "lambda": 1.00, "density": 1600, "c": 1000, "mu": 30,  "priority": 85,  "fill": ["Mortar", "Plaster"] },
+    { "id": "PARK",     "name": "Parket druri (lis)",                   "group": "Dysheme",      "lambda": 0.18, "density": 700,  "c": 1600, "mu": 50,  "priority": 80,  "fill": ["Wood - Hardwood", "Wood", "Holz", "Dru"] },
+    { "id": "LAMI",     "name": "Laminat",                              "group": "Dysheme",      "lambda": 0.17, "density": 900,  "c": 1600, "mu": 100, "priority": 80,  "fill": ["Wood", "Laminate"] },
+    { "id": "PE",       "name": "Folie polietileni PE (ndarëse)",       "group": "Membrana",     "lambda": 0.33, "density": 930,  "c": 2200, "mu": 100000, "priority": 50, "fill": ["Membrane", "Vapour Barrier", "Folie"] },
+    { "id": "BAV-AL",   "name": "Barrierë avulli bitumi me alumin",     "group": "Membrana",     "lambda": 0.23, "density": 1100, "c": 1000, "mu": 300000, "priority": 55, "fill": ["Membrane", "Vapour Barrier"] },
+    { "id": "HID-BIT",  "name": "Hidroizolim membranë bitumi SBS",      "group": "Membrana",     "lambda": 0.23, "density": 1100, "c": 1000, "mu": 20000, "priority": 60, "fill": ["Waterproofing", "Membrane", "Abdichtung"] },
+    { "id": "HID-PVC",  "name": "Membranë hidroizoluese PVC/TPO",        "group": "Membrana",     "lambda": 0.17, "density": 1300, "c": 1000, "mu": 15000, "priority": 60, "fill": ["Waterproofing", "Membrane"] },
+    { "id": "HID-LNG",  "name": "Hidroizolim i lëngshëm (çimentoje)",   "group": "Membrana",     "lambda": 0.50, "density": 1500, "c": 1000, "mu": 2000, "priority": 60, "fill": ["Waterproofing", "Membrane"] },
+    { "id": "MEM-DIF",  "name": "Membranë difuzive (paropërshkuese)",   "group": "Membrana",     "lambda": 0.22, "density": 400,  "c": 1500, "mu": 50,   "priority": 55, "fill": ["Membrane"] },
+    { "id": "GJEO",     "name": "Gjeotekstil",                          "group": "Membrana",     "lambda": 0.20, "density": 200,  "c": 1300, "mu": 1,    "priority": 40, "fill": ["Membrane", "Geotextile"] },
+    { "id": "DREN",     "name": "Shtresë drenazhuese HDPE me gunga (e shpuar)", "group": "Membrana", "lambda": 0.50, "density": 950,  "c": 1800, "mu": 1, "priority": 45, "fill": ["Membrane"] },
+    { "id": "ZHAV",     "name": "Zhavorr / tampon çakëlli",             "group": "Dheu",         "lambda": 2.00, "density": 1800, "c": 1000, "mu": 50,   "priority": 20, "fill": ["Gravel", "Kies", "Earth", "Zhavorr"] },
+    { "id": "SUBS",     "name": "Substrat për kulm të gjelbër",          "group": "Dheu",         "lambda": 1.00, "density": 1200, "c": 1500, "mu": 2,    "priority": 20, "fill": ["Earth", "Soil"] },
+    { "id": "DRU-P",    "name": "Dërrasa druri pishe (shalim)",         "group": "Dru",          "lambda": 0.13, "density": 500,  "c": 1600, "mu": 50,   "priority": 450, "fill": ["Wood - Softwood", "Wood", "Holz"] },
+    { "id": "OSB",      "name": "Pllakë OSB",                           "group": "Dru",          "lambda": 0.13, "density": 650,  "c": 1700, "mu": 200,  "priority": 440, "fill": ["Wood - Board", "Wood"] },
+    { "id": "TJEG",     "name": "Tjegull qeramike",                     "group": "Mbulesë",      "lambda": 1.00, "density": 2000, "c": 800,  "mu": 40,   "priority": 30, "fill": ["Roof Tile", "Tile", "Ziegel"] },
+    { "id": "LETVA",    "name": "Letva + kundërletva (shtresë e ventiluar)", "group": "Mbulesë", "lambda": 0.13, "density": 100, "c": 1600, "mu": 1, "air": true, "priority": 25, "fill": ["Air Space", "Air", "Empty"] },
+    { "id": "AJR-V",    "name": "Hapësirë ajrore e ventiluar",          "group": "Ajër",         "lambda": 0.025, "density": 1.2, "c": 1000, "mu": 1, "air": true, "priority": 0, "fill": ["Air Space", "Air", "Empty"] },
+    { "id": "AJR-M",    "name": "Shtresë ajri e paventiluar",            "group": "Ajër",         "lambda": 0.025, "density": 1.2, "c": 1000, "mu": 1, "air": true, "priority": 0, "fill": ["Air Space", "Air", "Empty"] },
+    { "id": "PLL-GUR",  "name": "Pllaka guri natyror",                  "group": "Dysheme",      "lambda": 2.30, "density": 2600, "c": 1000, "mu": 50,   "priority": 80, "fill": ["Stone", "Naturstein"] },
+    { "id": "PLL-BET",  "name": "Pllaka betoni mbi mbajtës (terasë)",    "group": "Dysheme",      "lambda": 1.65, "density": 2200, "c": 1000, "mu": 60,   "priority": 80, "fill": ["Concrete", "Beton"] }
+  ]
+}
