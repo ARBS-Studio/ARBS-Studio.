@@ -29,7 +29,7 @@ public:
 
 	void Show ();
 	void Hide ();
-	void ShowSection (const char* section);		// hap direkt nje seksion (nga menyja)
+	void ShowSection (const char* section, bool autoRun = false);		// hap direkt nje seksion (nga menyja)
 
 	virtual ~ArbsPalette ();
 

@@ -83,10 +83,12 @@ void ArbsPalette::Hide ()
 	SetMenuItemCheckedState (false);
 }
 
-void ArbsPalette::ShowSection (const char* section)
+void ArbsPalette::ShowSection (const char* section, bool autoRun)
 {
+	// veprimi ruhet ne C++: nese faqja ende po ngarkohet, JS e merr pas nisjes (komanda "pending")
+	Commands::SetPending (section, autoRun);
 	Show ();
-	browser.ExecuteJS (ToUni (std::string ("window.ARBSUI && ARBSUI.open('") + section + "')"));
+	browser.ExecuteJS ("window.ARBSUI && ARBSUI.pending && ARBSUI.pending()");
 }
 
 void ArbsPalette::InitBrowserControl ()

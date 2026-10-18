@@ -14,6 +14,7 @@ namespace AC {
 class Commands {
 public:
 	static std::string Handle (const std::string& requestJsonUtf8);
+	static void        SetPending (const std::string& section, bool autoRun);	// veprim nga menyja
 };
 
 }	// namespace AC

@@ -28,6 +28,9 @@ namespace AC {
 
 namespace {
 
+std::string g_pendingSection;
+bool        g_pendingAuto = false;
+
 Json::Value Ok ()
 {
 	Json::Value v = Json::Value::MakeObject ();
@@ -392,6 +395,16 @@ Json::Value CmdHolidays (const Json::Value& req)
 	return r;
 }
 
+Json::Value CmdPending (const Json::Value&)
+{
+	Json::Value r = Ok ();
+	r.Set ("section", g_pendingSection);
+	r.Set ("auto", g_pendingAuto);
+	g_pendingSection.clear ();
+	g_pendingAuto = false;
+	return r;
+}
+
 Json::Value CmdOpen (const Json::Value& req)
 {
 	std::string path = req.GetString ("path");
@@ -400,6 +413,12 @@ Json::Value CmdOpen (const Json::Value& req)
 }
 
 }	// namespace
+
+void Commands::SetPending (const std::string& section, bool autoRun)
+{
+	g_pendingSection = section;
+	g_pendingAuto = autoRun;
+}
 
 std::string Commands::Handle (const std::string& request)
 {
@@ -420,6 +439,7 @@ std::string Commands::Handle (const std::string& request)
 		{ "dynamicPlan", CmdDynamicPlan },
 		{ "holidays", CmdHolidays },
 		{ "open", CmdOpen },
+		{ "pending", CmdPending },
 	};
 	Json::Value result;
 	try {

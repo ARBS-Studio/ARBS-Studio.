@@ -505,8 +505,56 @@
   function fmt (iso) { if (!iso) return ''; const p = String(iso).split('-'); return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : iso; }
 
   // ---------------------------------------------------------------- nisja
+  // ---------------------------------------------------------------- veprimet nga menyja ARBS Studio
+  // Artikujt e menyse hapin seksionin dhe e nisin gjenerimin me te dhenat e modelit.
+  function readModel () {
+    return call('modelSummary', {}).then(function (m) { if (m && m.ok) S.model = m; return m; });
+  }
+  function click (id) { const b = $(id); if (b) b.click(); }
+  const AUTO = {
+    techdesc: function () { click('mkTech'); },
+    boq: function () { click('mkBoq'); },
+    insolation: function () { click('mkIns'); },
+    physics: function () { status('<span class="spin"></span> Duke lexuar modelin…'); readModel().then(function () { open('physics'); click('mkPhys'); }); },
+    plan: function () {
+      status('<span class="spin"></span> Duke lexuar modelin…');
+      readModel().then(function (m) {
+        open('plan');
+        if (m && m.ok) {
+          const bts = Number(S.project.bts) || (m.netArea ? Math.round(m.netArea * 1.18) : 0);
+          if (bts) $('plArea').value = bts;
+          if (m.floorsAbove) $('plUp').value = m.floorsAbove;
+          $('plDown').value = m.floorsBelow || 0;
+        }
+        click('mkPlan');
+      });
+    },
+    schedules: function () {
+      const kinds = [['door', 'Skema e dyerve'], ['window', 'Skema e dritareve'], ['inventory', 'Skema e inventarit'], ['zones', 'Tabela e sipërfaqeve']];
+      let html = '', i = 0;
+      (function next () {
+        if (i >= kinds.length) { status('U krye: skemat nga modeli u gjeneruan', 'ok'); return; }
+        const k = kinds[i++];
+        run('schedule', { kind: k[0], selectionOnly: false }, k[1] + ' u gjenerua').then(function (r) {
+          if (r && r.ok) { html += '<p class="note"><b>' + k[1] + '</b> · elemente: ' + (r.count || 0) + '</p>' + filesHtml(r); if ($('schedOut')) $('schedOut').innerHTML = html; }
+          next();
+        });
+      })();
+    }
+  };
+  function doPending () {
+    if (!S.ready) return Promise.resolve(false);
+    return call('pending', {}).then(function (p) {
+      if (!p || !p.ok || !p.section) return false;
+      open(p.section);
+      if (p.auto && AUTO[p.section]) AUTO[p.section]();
+      return true;
+    });
+  }
+
   window.ARBSUI = {
     open: function (s) { open(s); },
+    pending: function () { doPending(); },
     onSelectionChanged: function () { }
   };
 
@@ -522,8 +570,11 @@
     if (S.project.emri) $('projName').textContent = (S.project.nr ? S.project.nr + ' · ' : '') + S.project.emri;
     if (r.catalogError) status('Të dhënat: ' + esc(r.catalogError), 'err');
     else status('Gati · dokumentet ruhen në: ' + esc(r.folder || ''));
-    open(S.section);
-    call('modelSummary', {}).then(function (m) { if (m && m.ok) S.model = m; });
+    S.ready = true;
+    doPending().then(function (handled) {
+      if (!handled) open(S.section);
+      if (!S.model) readModel();
+    });
     }).catch(function (e) { status('Gabim gjatë nisjes: ' + esc(String(e)), 'err'); });
   }
   function PRetry () { return $('retry'); }

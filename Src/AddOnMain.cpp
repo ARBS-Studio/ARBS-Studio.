@@ -12,25 +12,23 @@
 
 using ARBS::AC::ArbsPalette;
 
+// Artikujt e menyse: cdo artikull eshte burim STR# me vete (ID_ARBS_MENU + k), me nje artikull.
+// Artikujt e gjenerimit hapin seksionin e paletes dhe e nisin menjehere gjenerimin nga modeli.
 static GSErrCode MenuCommandHandler (const API_MenuParams* menuParams)
 {
-	if (menuParams->menuItemRef.menuResID != ID_ARBS_MENU) return NoError;
-
-	switch (menuParams->menuItemRef.itemIndex) {
-		case ID_ARBS_MENU_PALETTE:
-			ArbsPalette::Toggle ();
-			break;
-		default: {
-			static const char* sections[] = { "", "", "template", "composites", "techdesc", "boq", "physics", "insolation", "schedules", "plan", "profile" };
-			const Int32 idx = menuParams->menuItemRef.itemIndex;
-			ArbsPalette::CreateInstance ();
-			if (idx > 1 && idx < static_cast<Int32> (sizeof (sections) / sizeof (sections[0])))
-				ArbsPalette::GetInstance ().ShowSection (sections[idx]);
-			else
-				ArbsPalette::GetInstance ().Show ();
-			break;
-		}
+	const Int32 k = static_cast<Int32> (menuParams->menuItemRef.menuResID) - ID_ARBS_MENU;
+	if (k < 0 || k >= ID_ARBS_MENU_COUNT) return NoError;
+	if (k == 0) {
+		ArbsPalette::Toggle ();
+		return NoError;
 	}
+	struct Action { const char* section; bool autoRun; };
+	static const Action actions[ID_ARBS_MENU_COUNT] = {
+		{ "", false }, { "template", false }, { "composites", false }, { "techdesc", true }, { "boq", true },
+		{ "physics", true }, { "insolation", true }, { "schedules", true }, { "plan", true }, { "profile", false }
+	};
+	ArbsPalette::CreateInstance ();
+	ArbsPalette::GetInstance ().ShowSection (actions[k].section, actions[k].autoRun);
 	return NoError;
 }
 
@@ -43,14 +41,23 @@ API_AddonType CheckEnvironment (API_EnvirParams* envir)
 
 GSErrCode RegisterInterface (void)
 {
-	// Menyja kryesore "ARBS Studio" (MenuCode_UserDef: stringu i pare eshte titulli i menyse)
-	return ACAPI_MenuItem_RegisterMenu (ID_ARBS_MENU, ID_ARBS_MENU_PROMPT, MenuCode_UserDef, MenuFlag_Default);
+	// Menyja kryesore "ARBS Studio" (MenuCode_UserDef): nje burim per artikull, qe artikujt
+	// te dalin direkt nen menyne (me shume artikuj ne nje burim Archicad krijon nenmeny).
+	for (short k = 0; k < ID_ARBS_MENU_COUNT; ++k) {
+		const GSFlags flags = (k == 0 || k == ID_ARBS_MENU_COUNT - 2) ? MenuFlag_SeparatorAfter : MenuFlag_Default;
+		const GSErrCode err = ACAPI_MenuItem_RegisterMenu (static_cast<short> (ID_ARBS_MENU + k), static_cast<short> (ID_ARBS_MENU_PROMPT + k), MenuCode_UserDef, flags);
+		if (err != NoError) return err;
+	}
+	return NoError;
 }
 
 GSErrCode Initialize (void)
 {
-	GSErrCode err = ACAPI_MenuItem_InstallMenuHandler (ID_ARBS_MENU, MenuCommandHandler);
-	if (err != NoError) return err;
+	GSErrCode err = NoError;
+	for (short k = 0; k < ID_ARBS_MENU_COUNT; ++k) {
+		err = ACAPI_MenuItem_InstallMenuHandler (static_cast<short> (ID_ARBS_MENU + k), MenuCommandHandler);
+		if (err != NoError) return err;
+	}
 
 	err = ACAPI_Notification_CatchSelectionChange (ArbsPalette::SelectionChangeHandler);
 	if (err != NoError) return err;

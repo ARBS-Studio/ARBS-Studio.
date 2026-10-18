@@ -6,8 +6,9 @@
 // -----------------------------------------------------------------------------
 
 #define ID_ADDON_INFO			32000
-#define ID_ARBS_MENU			32500
-#define ID_ARBS_MENU_PROMPT		32510
+#define ID_ARBS_MENU			32500	// 32500..32509: nje burim STR# per artikull
+#define ID_ARBS_MENU_COUNT		10
+#define ID_ARBS_MENU_PROMPT		32520	// 32520..32529
 #define ID_ARBS_PALETTE			32600
 #define ID_ARBS_ICON			10001
 

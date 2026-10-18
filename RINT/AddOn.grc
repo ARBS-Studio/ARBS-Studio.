@@ -9,32 +9,107 @@
 /* [  2] */		"ARBS Studio – template i punës në shqip, kompozita, përshkrim teknik, paramasë dhe parallogari, fizikë ndërtimore, insolim, skema dhe plan dinamik sipas legjislacionit të Kosovës."
 }
 
-'STR#' ID_ARBS_MENU "ARBS Studio menu" {
+/* Menyja "ARBS Studio": cdo artikull eshte burim me vete (titulli + 1 artikull), qe artikujt
+   te dalin direkt nen ARBS Studio (pa nenmeny). */
+
+'STR#' 32500 "ARBS Studio menu 1" {
 /* [   ] */		"ARBS Studio"
 /* [  1] */		"Paleta ARBS Studio^ES^EE^EI^ED^EW^E3^EL^10001"
-/* [  2] */		"Template i punës (faza, shtresat, Layout Book)...^ES^EE^EI^ED^EW^E3^EL"
-/* [  3] */		"Kompozitat e materialeve...^ES^EE^EI^ED^EW^E3^EL"
-/* [  4] */		"Përshkrimi teknik...^ES^EE^EI^ED^EW^E3^EL"
-/* [  5] */		"Paramasa dhe parallogaria...^ES^EE^EI^ED^EW^E3^EL"
-/* [  6] */		"Fizika ndërtimore...^ES^EE^EI^ED^EW^E3^EL"
-/* [  7] */		"Insolimi dhe lokacioni...^ES^EE^EI^ED^EW^E3^EL"
-/* [  8] */		"Skemat e dyerve, dritareve dhe inventarit...^ES^EE^EI^ED^EW^E3^EL"
-/* [  9] */		"Plani dinamik...^ES^EE^EI^ED^EW^E3^EL"
-/* [ 10] */		"Profili i zyrës dhe të dhënat e projektit...^ES^EE^EI^ED^EW^E3^EL"
 }
 
-'STR#' ID_ARBS_MENU_PROMPT "ARBS Studio menu prompts" {
-/* [   ] */		""
+'STR#' 32501 "ARBS Studio menu 2" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Template i punës (faza, shtresat, Layout Book)...^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32502 "ARBS Studio menu 3" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Kompozitat e materialeve...^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32503 "ARBS Studio menu 4" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Përshkrimi teknik nga modeli^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32504 "ARBS Studio menu 5" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Paramasa dhe parallogaria nga modeli^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32505 "ARBS Studio menu 6" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Fizika ndërtimore nga modeli^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32506 "ARBS Studio menu 7" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Insolimi dhe lokacioni^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32507 "ARBS Studio menu 8" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Skemat e dyerve, dritareve, inventarit dhe sipërfaqeve^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32508 "ARBS Studio menu 9" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Plani dinamik nga modeli^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32509 "ARBS Studio menu 10" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Profili i zyrës dhe të dhënat e projektit...^ES^EE^EI^ED^EW^E3^EL"
+}
+
+'STR#' 32520 "ARBS Studio prompt 1" {
+/* [   ] */		"ARBS Studio"
 /* [  1] */		"Hap ose mbyll paletën ARBS Studio"
-/* [  2] */		"Krijon shtresat, kombinimet, View Map dhe Layout Book sipas fazave PK / PI / PKR / PZ"
-/* [  3] */		"Krijon materialet dhe kompozitat tipike të Kosovës me vlerat termike"
-/* [  4] */		"Gjeneron përshkrimin teknik (Word) nga modeli dhe të dhënat e projektit"
-/* [  5] */		"Paramasa dhe parallogaria nga sasitë e modelit me çmimet e tregut në Kosovë"
-/* [  6] */		"Gjeneron elaboratin e fizikës ndërtimore (U, Glaser) sipas Rregullores MMPH 04/18"
-/* [  7] */		"Vendos lokacionin dhe gjeneron skemën e insolimit"
-/* [  8] */		"Gjeneron skemat e dyerve, dritareve, inventarit dhe sipërfaqeve"
-/* [  9] */		"Plani dinamik me kalendarin e festave zyrtare të Kosovës"
-/* [ 10] */		"Profili i zyrës dhe të dhënat e projektit"
+}
+
+'STR#' 32521 "ARBS Studio prompt 2" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Krijon shtresat, kombinimet, View Map dhe Layout Book sipas fazave PK / PI / PKR / PZ"
+}
+
+'STR#' 32522 "ARBS Studio prompt 3" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Krijon materialet dhe kompozitat tipike të Kosovës me vlerat termike"
+}
+
+'STR#' 32523 "ARBS Studio prompt 4" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Gjeneron përshkrimin teknik (Word) nga modeli dhe të dhënat e projektit"
+}
+
+'STR#' 32524 "ARBS Studio prompt 5" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Paramasa dhe parallogaria nga sasitë e modelit me çmimet e tregut në Kosovë"
+}
+
+'STR#' 32525 "ARBS Studio prompt 6" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Gjeneron elaboratin e fizikës ndërtimore (U, Glaser) për kompozitat e modelit"
+}
+
+'STR#' 32526 "ARBS Studio prompt 7" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Gjeneron skemën e insolimit për lokacionin e projektit"
+}
+
+'STR#' 32527 "ARBS Studio prompt 8" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Gjeneron nga modeli skemat e dyerve, dritareve, inventarit dhe tabelën e sipërfaqeve"
+}
+
+'STR#' 32528 "ARBS Studio prompt 9" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Plani dinamik me sipërfaqet dhe katet e modelit dhe kalendarin e festave të Kosovës"
+}
+
+'STR#' 32529 "ARBS Studio prompt 10" {
+/* [   ] */		"ARBS Studio"
+/* [  1] */		"Profili i zyrës dhe të dhënat e projektit"
 }
 
 /* --- Paleta (toolbar) me kontroll Browser ------------------------------------ */
