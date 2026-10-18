@@ -92,7 +92,7 @@
 </head>
 <body>
 <header>
-  <img id="logo" alt="ARBS Studio" src="">
+  <img id="logo" alt="" src="" style="display:none">
   <div class="t"><b>ARBS Studio</b><span id="projName">Archicad · Republika e Kosovës</span></div>
   <span class="ver" id="ver">v0.1</span>
 </header>
@@ -121,11 +121,27 @@
   ];
 
   // ---------------------------------------------------------------- ura C++
+  // Ura ARBS (C++) regjistrohet nga Archicad pak pas ngarkimit te faqes: presim deri ne 10 s.
+  function bridgeReady () {
+    return new Promise(function (resolve) {
+      var t0 = Date.now();
+      (function check () {
+        if (window.ARBS && typeof window.ARBS.Call === 'function') return resolve(true);
+        if (window.ARBSMock) return resolve(false);
+        if (Date.now() - t0 > 10000) return resolve(false);
+        setTimeout(check, 50);
+      })();
+    });
+  }
   function call (cmd, data) {
     const req = JSON.stringify(Object.assign({ cmd: cmd }, data || {}));
-    if (window.ARBS && typeof window.ARBS.Call === 'function')
-      return window.ARBS.Call(req).then(function (r) { return JSON.parse(r); });
-    return Promise.resolve(window.ARBSMock ? window.ARBSMock(cmd, data || {}) : { ok: false, error: 'Paleta nuk është brenda Archicad-it.' });
+    return bridgeReady().then(function (ok) {
+      if (ok) return window.ARBS.Call(req).then(function (r) {
+        try { return JSON.parse(r); }
+        catch (e) { return { ok: false, error: 'Përgjigje e pavlefshme nga add-on-i (' + (r ? String(r).length : 0) + ' karaktere): ' + e.message }; }
+      });
+      return window.ARBSMock ? window.ARBSMock(cmd, data || {}) : { ok: false, error: 'Lidhja me Archicad-in nuk u krijua. Mbyllni dhe rihapni paletën.' };
+    });
   }
 
   const S = { section: 'profile', catalog: null, office: {}, project: {}, plan: {}, model: null, busy: false };
@@ -434,17 +450,23 @@
   };
 
   buildNav();
-  call('init', {}).then(function (r) {
-    if (!r || !r.ok) { status(esc((r && r.error) || 'Nisja dështoi.'), 'err'); open('profile'); return; }
+  function boot () {
+    status('<span class="spin"></span> Duke ngarkuar të dhënat…');
+    return call('init', {}).then(function (r) {
+    if (!r || !r.ok) { status(esc((r && r.error) || 'Nisja dështoi.') + ' <a href="#" id="retry">Provo përsëri</a>', 'err'); open('profile');
+      var rt = PRetry(); if (rt) rt.onclick = function (e) { e.preventDefault(); boot(); }; return; }
     S.catalog = r.catalog; S.office = r.office || {}; S.project = r.project || {}; S.plan = r.plan || {};
-    if (r.logo) $('logo').src = r.logo;
+    if (r.logo) { $('logo').src = r.logo; $('logo').style.display = ''; }
     $('ver').textContent = 'v' + r.version;
     if (S.project.emri) $('projName').textContent = (S.project.nr ? S.project.nr + ' · ' : '') + S.project.emri;
     if (r.catalogError) status('Të dhënat: ' + esc(r.catalogError), 'err');
     else status('Gati · dokumentet ruhen në: ' + esc(r.folder || ''));
     open(S.section);
     call('modelSummary', {}).then(function (m) { if (m && m.ok) S.model = m; });
-  });
+    }).catch(function (e) { status('Gabim gjatë nisjes: ' + esc(String(e)), 'err'); });
+  }
+  function PRetry () { return $('retry'); }
+  boot();
 })();
 </script>
 </body>
