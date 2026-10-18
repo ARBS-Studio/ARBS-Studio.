@@ -15,6 +15,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 defaults:
   run:
     shell: bash
@@ -100,10 +103,20 @@ jobs:
           path: |
             D:/arbs/dist/*.exe
             D:/arbs/dist/AC*/
-      - name: Publikimi (vetem per tag v*)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Versioni
+        id: ver
+        run: echo "v=$(python -c "import json;print(json.load(open('config.json'))['version'])")" >> "$GITHUB_OUTPUT"
+      - name: Publikimi si Release
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.ver.outputs.v }}
+          name: ARBS Studio v${{ steps.ver.outputs.v }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          body: |
+            Setup i vetem per Archicad 28, 29 dhe 30 (Windows): shkarkoni ARBS_Studio_Setup_${{ steps.ver.outputs.v }}.exe, mbyllni Archicad-in dhe ekzekutoni setup-in.
+            Ne Archicad: menyja ARBS Studio > Paleta ARBS Studio.
           files: D:/arbs/dist/*.exe
 
   addon-macos:
@@ -155,10 +168,14 @@ jobs:
             dist/*.exe
             dist/*.pkg
             dist/AC*/
-      - name: Publikimi (vetem per tag v*)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Versioni
+        id: ver
+        run: echo "v=$(python -c "import json;print(json.load(open('config.json'))['version'])")" >> "$GITHUB_OUTPUT"
+      - name: Publikimi si Release
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/*.exe
-            dist/*.pkg
+          tag_name: v${{ steps.ver.outputs.v }}
+          name: ARBS Studio v${{ steps.ver.outputs.v }}
+          target_commitish: ${{ github.sha }}
+          files: dist/*.pkg
