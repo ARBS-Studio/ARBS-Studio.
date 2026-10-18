@@ -75,7 +75,7 @@ jobs:
           python Tools/BuildAddOn.py --configFile config.json --acVersion 28 29 30 --buildConfig Release --package 2>&1 | tee build.log
           rc=${PIPESTATUS[0]}
           if [ $rc -ne 0 ]; then
-            grep -E "error|Error|ERROR|fatal" build.log | grep -v "warning" | sort -u | head -60 | while IFS= read -r line; do echo "::error::${line//%/%25}"; done
+            grep -E "error|Error|ERROR|fatal|warning C[0-9]+" build.log | sed -E 's/^.*[\\/](Src|Tools|Build)[\\/]/\1\//' | sort -u | head -90 | while IFS= read -r line; do echo "::error::${line//%/%25}"; done
           fi
           exit $rc
       - name: Mbledhja e binareve
