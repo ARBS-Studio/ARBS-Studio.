@@ -81,6 +81,25 @@ Json::Value ProjectStore::OfficeForReports ()
 	return office;
 }
 
+// Archicad 30 e shenon ACAPI_AutoText_CreateAnAutoText si "deprecated"; me /WX paralajmerimi
+// behet gabim, prandaj e thirrim me paralajmerimin e fikur (funksioni ekziston ne 28, 29 dhe 30).
+#if defined (_MSC_VER)
+#pragma warning (push)
+#pragma warning (disable: 4996)
+#elif defined (__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+static GSErrCode CreateProjectInfoField (const API_Guid& guid, const std::string& uiLabel)
+{
+	return ACAPI_AutoText_CreateAnAutoText (&guid, uiLabel.c_str ());
+}
+#if defined (_MSC_VER)
+#pragma warning (pop)
+#elif defined (__clang__)
+#pragma clang diagnostic pop
+#endif
+
 static std::string Upper (std::string s)
 {
 	for (char& c : s) c = static_cast<char> (std::toupper (static_cast<unsigned char> (c)));
@@ -116,7 +135,7 @@ Json::Value ProjectStore::PushToProjectInfo (const Json::Value& project, const J
 			if (key.IsEmpty ()) {
 				// krijo fushe te re ne Project Info
 				API_Guid guid = GSGuid2APIGuid (GS::Guid (GS::Guid::GenerateGuid));
-				if (ACAPI_AutoText_CreateAnAutoText (&guid, ToUtf8 (ToUni (uiLabel)).c_str ()) == NoError) {
+				if (CreateProjectInfoField (guid, uiLabel) == NoError) {
 					++createdCount;
 					autotexts.Clear ();
 					ACAPI_AutoText_GetAutoTexts (&autotexts, APIAutoText_All);
