@@ -70,7 +70,14 @@ jobs:
           open(p, 'w').write(s)
           PY
       - name: Ndertimi per Archicad 28, 29, 30
-        run: python Tools/BuildAddOn.py --configFile config.json --acVersion 28 29 30 --buildConfig Release --package
+        run: |
+          set +e
+          python Tools/BuildAddOn.py --configFile config.json --acVersion 28 29 30 --buildConfig Release --package 2>&1 | tee build.log
+          rc=${PIPESTATUS[0]}
+          if [ $rc -ne 0 ]; then
+            grep -E "error|Error|ERROR|fatal" build.log | grep -v "warning" | sort -u | head -60 | while IFS= read -r line; do echo "::error::${line//%/%25}"; done
+          fi
+          exit $rc
       - name: Mbledhja e binareve
         run: |
           for v in 28 29 30; do
