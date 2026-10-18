@@ -35,13 +35,73 @@ jobs:
           name: ARBS-dokumente-shembull
           path: samples/
 
-  addon:
+  # Windows: repozitori mund te kete emer qe mbaron me "." (p.sh. "ARBS-Studio."), te cilin
+  # Windows nuk e lejon si dosje. Prandaj klonohet manualisht ne D:\arbs.
+  addon-windows:
     needs: core-tests
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ windows-2022, macos-14 ]
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+        working-directory: D:/arbs
+    steps:
+      - name: Klonimi ne D:\arbs
+        working-directory: D:/
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)" clone --depth 1 --branch "${GITHUB_REF_NAME}" "https://github.com/${GITHUB_REPOSITORY}.git" arbs
+          cd arbs && git submodule update --init --recursive --depth 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: MDID (opsionale)
+        env:
+          DEV: ${{ secrets.ARBS_MDID_DEVELOPER }}
+          LOC: ${{ secrets.ARBS_MDID_LOCAL }}
+        if: env.DEV != ''
+        run: |
+          python - <<'PY'
+          import os, re
+          p = 'Src/ResourceIds.hpp'
+          s = open(p).read()
+          s = re.sub(r'(#define ARBS_MDID_DEVELOPER\s+)1\b', r'\g<1>' + os.environ['DEV'], s)
+          s = re.sub(r'(#define ARBS_MDID_LOCAL\s+)1\b', r'\g<1>' + os.environ['LOC'], s)
+          open(p, 'w').write(s)
+          PY
+      - name: Ndertimi per Archicad 28, 29, 30
+        run: python Tools/BuildAddOn.py --configFile config.json --acVersion 28 29 30 --buildConfig Release --package
+      - name: Mbledhja e binareve
+        run: |
+          for v in 28 29 30; do
+            mkdir -p dist/AC$v
+            cp "Build/Package/ARBS_Studio/$v/INT/Release/ARBS_Studio.apx" dist/AC$v/
+          done
+          ls -R dist
+      - name: Instaluesi Windows (Inno Setup)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
+          $ver = (Get-Content config.json | ConvertFrom-Json).version
+          & $iscc "/DAppVersion=$ver" "/DBinDir=..\..\dist" Installer\Windows\ARBS_Studio.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ARBS-Studio-Windows
+          path: |
+            D:/arbs/dist/*.exe
+            D:/arbs/dist/AC*/
+      - name: Publikimi (vetem per tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: D:/arbs/dist/*.exe
+
+  addon-macos:
+    needs: core-tests
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,15 +136,6 @@ jobs:
             if [ "$RUNNER_OS" == "Windows" ]; then cp "$src/ARBS_Studio.apx" dist/AC$v/; else cp -R "$src/ARBS_Studio.bundle" dist/AC$v/; fi
           done
           ls -R dist | head -40
-      - name: Instaluesi Windows (Inno Setup)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
-          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
-          if (-not $iscc) { $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
-          $ver = (Get-Content config.json | ConvertFrom-Json).version
-          & $iscc "/DAppVersion=$ver" "/DBinDir=..\..\dist" Installer\Windows\ARBS_Studio.iss
       - name: Instaluesi macOS (pkg)
         if: runner.os == 'macOS'
         run: |
