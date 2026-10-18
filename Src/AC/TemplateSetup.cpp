@@ -34,9 +34,26 @@ bool TemplateSetup::FindAttributeByName (API_AttrTypeID type, const GS::UniStrin
 	return true;
 }
 
+static const char* ErrName (GSErrCode err)
+{
+	switch (err) {
+		case APIERR_GENERAL:      return "APIERR_GENERAL";
+		case APIERR_MEMFULL:      return "APIERR_MEMFULL";
+		case APIERR_BADPARS:      return "APIERR_BADPARS";
+		case APIERR_BADID:        return "APIERR_BADID";
+		case APIERR_BADINDEX:     return "APIERR_BADINDEX";
+		case APIERR_BADNAME:      return "APIERR_BADNAME";
+		case APIERR_NOTMINE:      return "APIERR_NOTMINE";
+		case APIERR_REFUSEDCMD:   return "APIERR_REFUSEDCMD";
+		case APIERR_NEEDSUNDOSCOPE: return "APIERR_NEEDSUNDOSCOPE";
+		default:                  return "";
+	}
+}
+
 static void AddError (Json::Value& report, const std::string& msg, GSErrCode err)
 {
-	report["errors"].Push (Json::Value (msg + " (kodi " + std::to_string (static_cast<long long> (err)) + ")"));
+	const std::string name = ErrName (err);
+	report["errors"].Push (Json::Value (msg + " (kodi " + std::to_string (static_cast<long long> (err)) + (name.empty () ? "" : " " + name) + ")"));
 }
 
 static std::string LayerCode (const GS::UniString& name)
@@ -144,7 +161,18 @@ static bool GetMapRoot (API_NavigatorMapID mapId, API_Guid* root)
 	API_NavigatorSet set {};
 	set.mapId = mapId;
 	if (ACAPI_Navigator_GetNavigatorSet (&set) != NoError) return false;
+	// rootGuid eshte nyja e padukshme; nyja e projektit (p.sh. "Projekti Finale 28") eshte femija i saj
+	// (sipas shembullit Navigator_Test te DevKit-it). Dosjet dhe subset-et krijohen nen te.
 	*root = set.rootGuid;
+	API_NavigatorItem item {};
+	item.guid = set.rootGuid;
+	item.mapId = mapId;
+	GS::Array<API_NavigatorItem> children;
+	if (ACAPI_Navigator_GetNavigatorChildrenItems (&item, &children) == NoError && !children.IsEmpty ()) {
+		*root = children.GetFirst ().guid;
+		for (const API_NavigatorItem& ch : children)
+			if (ch.itemType == API_ProjectNavItem) { *root = ch.guid; break; }
+	}
 	return true;
 }
 
@@ -236,7 +264,8 @@ void TemplateSetup::CreateViewMap (const SetupOptions& opt, Json::Value& report)
 		const std::string phaseName = code + " - " + phase->GetString ("name");
 		const std::string combo = phase->GetString ("combination");
 		API_Guid phaseFolder;
-		if (EnsureFolder (root, ToUni (phaseName), &phaseFolder, &folders) != NoError) { AddError (report, "Dosja " + phaseName, APIERR_GENERAL); continue; }
+		const GSErrCode ferr = EnsureFolder (root, ToUni (phaseName), &phaseFolder, &folders);
+		if (ferr != NoError) { AddError (report, "Dosja " + phaseName, ferr); continue; }
 
 		std::map<std::string, API_Guid> sub;
 		for (const Json::Value& f : GetCatalog ().Phases ()["viewMap"]["folders"].AsArray ()) {
@@ -303,7 +332,7 @@ static bool EnsureMaster (const std::string& size, API_DatabaseUnId* master, int
 	return true;
 }
 
-static bool EnsureSubset (const API_Guid& parent, const std::string& name, const std::string& prefix, bool useUpper, API_Guid* result, int* created)
+static bool EnsureSubset (const API_Guid& parent, const std::string& name, const std::string& prefix, bool useUpper, API_Guid* result, int* created, GSErrCode* errOut = nullptr)
 {
 	const GS::UniString uname = ToUni (name);
 	if (FindChild (API_LayoutMap, parent, uname, API_SubSetNavItem, result)) return true;
@@ -315,7 +344,9 @@ static bool EnsureSubset (const API_Guid& parent, const std::string& name, const
 	ss.useUpperPrefix = useUpper;
 	ss.numberingStyle = API_NS_01;
 	ss.startAt = 1;
-	if (ACAPI_Navigator_CreateSubSet (&ss, &parent) != NoError) return false;
+	GSErrCode err = ACAPI_Navigator_CreateSubSet (&ss, &parent);
+	if (errOut) *errOut = err;
+	if (err != NoError) return false;
 	if (created) ++*created;
 	return FindChild (API_LayoutMap, parent, uname, API_SubSetNavItem, result);
 }
@@ -345,7 +376,8 @@ void TemplateSetup::CreateLayoutBook (const SetupOptions& opt, Json::Value& repo
 		if (phase == nullptr) continue;
 		API_Guid phaseSubset;
 		const std::string phaseName = code + " - " + phase->GetString ("name");
-		if (!EnsureSubset (root, phaseName, code + "-", false, &phaseSubset, &subsets)) { AddError (report, "Subset " + phaseName, APIERR_GENERAL); continue; }
+		GSErrCode serr = NoError;
+		if (!EnsureSubset (root, phaseName, code + "-", false, &phaseSubset, &subsets, &serr)) { AddError (report, "Subset " + phaseName, serr != NoError ? serr : APIERR_GENERAL); continue; }
 
 		std::map<std::string, API_Guid> discSubsets;
 		for (const Json::Value& sheet : (*phase)["sheets"].AsArray ()) {
@@ -372,8 +404,9 @@ void TemplateSetup::CreateLayoutBook (const SetupOptions& opt, Json::Value& repo
 				CopyToUChar (ToUni (full), li.layoutName, API_UniLongNameLen);
 				li.showMasterBelow = true;
 				API_Guid parent = discSubsets[d];
-				if (ACAPI_Navigator_CreateLayout (&li, &master, &parent) == NoError) ++layouts;
-				else AddError (report, "Fleta " + full, APIERR_GENERAL);
+				const GSErrCode lerr = ACAPI_Navigator_CreateLayout (&li, &master, &parent);
+				if (lerr == NoError) ++layouts;
+				else AddError (report, "Fleta " + full, lerr);
 			}
 		}
 	}
