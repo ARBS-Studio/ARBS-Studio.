@@ -21,7 +21,7 @@ static GSErrCode MenuCommandHandler (const API_MenuParams* menuParams)
 			ArbsPalette::Toggle ();
 			break;
 		default: {
-			static const char* sections[] = { "", "", "template", "composites", "techdesc", "physics", "insolation", "schedules", "plan", "profile" };
+			static const char* sections[] = { "", "", "template", "composites", "techdesc", "boq", "physics", "insolation", "schedules", "plan", "profile" };
 			const Int32 idx = menuParams->menuItemRef.itemIndex;
 			ArbsPalette::CreateInstance ();
 			if (idx > 1 && idx < static_cast<Int32> (sizeof (sections) / sizeof (sections[0])))

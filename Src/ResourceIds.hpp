@@ -16,11 +16,12 @@
 #define ID_ARBS_MENU_TEMPLATE		2
 #define ID_ARBS_MENU_COMPOSITES		3
 #define ID_ARBS_MENU_TECHDESC		4
-#define ID_ARBS_MENU_PHYSICS		5
-#define ID_ARBS_MENU_INSOLATION		6
-#define ID_ARBS_MENU_SCHEDULES		7
-#define ID_ARBS_MENU_PLAN			8
-#define ID_ARBS_MENU_PROFILE		9
+#define ID_ARBS_MENU_BOQ			5
+#define ID_ARBS_MENU_PHYSICS		6
+#define ID_ARBS_MENU_INSOLATION		7
+#define ID_ARBS_MENU_SCHEDULES		8
+#define ID_ARBS_MENU_PLAN			9
+#define ID_ARBS_MENU_PROFILE		10
 
 // -----------------------------------------------------------------------------
 // MDID - identifikuesi i add-on-it te Graphisoft.

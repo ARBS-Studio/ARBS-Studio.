@@ -78,7 +78,8 @@ int main (int argc, char** argv)
 		"composites": [
 			{"code": "MJ-01", "area": 236.4}, {"code": "MT-01", "area": 92.0}, {"code": "MN-01", "area": 120.0},
 			{"code": "DY-01", "area": 61.0}, {"code": "DY-02", "area": 142.5}, {"code": "DY-06", "area": 142.5}, {"code": "KP-02", "area": 168.0}, {"code": "TH-01", "area": 81.5}
-		] })");
+		],
+		"elements": { "E:column:v": 6.8, "E:beam:v": 9.4, "E:stair:n": 2, "E:roof:eaves:l": 52.0, "E:roof:ridge:l": 14.0 } })");
 
 	std::printf ("Dokumentet:\n");
 	Save (outDir, Reports::TechnicalDescription (cat, project, office, model));
@@ -92,6 +93,13 @@ int main (int argc, char** argv)
 	for (const ReportOutput& r : Reports::OpeningSchedule (project, office, model, "window")) Save (outDir, r);
 	for (const ReportOutput& r : Reports::InventorySchedule (project, office, model)) Save (outDir, r);
 	for (const ReportOutput& r : Reports::ZoneSchedule (project, office, model)) Save (outDir, r);
+
+	BoqOptions bo;
+	for (const ReportOutput& r : Reports::QuantitiesAndCost (cat, project, office, model, bo)) Save (outDir, r);
+	const BoqResult br = BillOfQuantities::Compute (cat, model, project, bo);
+	std::printf ("Parallogaria: punimet %s EUR, pa TVSH %s EUR, me TVSH %s EUR, %s EUR/m2 BTS\n", BillOfQuantities::Money (br.works).c_str (),
+				 BillOfQuantities::Money (br.net).c_str (), BillOfQuantities::Money (br.total).c_str (), BillOfQuantities::Money (br.perM2).c_str ());
+	for (const BoqGroup& g : br.groups) std::printf ("  %-5s %-45s %12s\n", g.id.c_str (), g.name.c_str (), BillOfQuantities::Money (g.total).c_str ());
 
 	PlanParameters p;
 	p.start = Date (2027, 3, 1);

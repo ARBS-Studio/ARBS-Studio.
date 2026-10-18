@@ -8,6 +8,7 @@ Toolbar (paletë) brenda Archicad-it për punën e projektimit sipas legjislacio
 | **Template** | Krijon 48 shtresa, 12 kombinime, View Map dhe Layout Book për fazat **PK / PI / PKR / PZ**, me fleta dhe masterë A4–A1. |
 | **Kompozitat** | Krijon 47 materiale (λ, ρ, c) dhe 25 kompozita për mure, dysheme, kulme të rrafshëta e të pjerrëta dhe themele, me kontrollin U sipas Rregullores MMPH 04/18. |
 | **Përshkrimi teknik** | Gjeneron dokument Word me 12 kapituj, të plotësuar nga modeli: zonat, kompozitat dhe hapjet. |
+| **Paramasa** | Paramasa dhe parallogaria nga sasitë e modelit (kompozitat ARBS sipas shtresave, kolonat, trarët, zonat, dyert, dritaret) × çmimet orientuese të tregut në Kosovë (`Data/prices.json`, të ndryshueshme për zyrën). Del si HTML, Word, paramasë për ofertim pa çmime dhe CSV, me rekapitulim, të paparashikuara dhe TVSH 18 %. |
 | **Fizika** | Gjeneron elaboratin e fizikës ndërtimore: U, U<sub>max</sub>, Glaser me diagram dhe sipërfaqet nga modeli. |
 | **Insolimi** | Vendos lokacionin në Archicad (38 komuna) dhe gjeneron diagramin e diellit, orët e insolimit sipas orientimit dhe hijet. |
 | **Skemat** | Gjeneron skemat e dyerve, të dritareve, të inventarit dhe tabelën e sipërfaqeve (HTML + CSV për Excel). |

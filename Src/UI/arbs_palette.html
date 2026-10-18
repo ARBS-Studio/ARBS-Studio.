@@ -22,8 +22,8 @@
   header .t b { display: block; font-size: 13px; color: var(--navy); }
   header .t span { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .ver { font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 1px 7px; }
-  nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px; background: var(--card); border-bottom: 1px solid var(--line); }
-  nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px 6px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ink); cursor: pointer; font-size: 10.5px; }
+  nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px; background: var(--card); border-bottom: 1px solid var(--line); }
+  nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px 6px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ink); cursor: pointer; font-size: 10px; line-height: 1.15; text-align: center; }
   nav button svg { width: 22px; height: 22px; stroke: var(--green); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   nav button:hover { background: var(--green-soft); }
   nav button.on { background: var(--green); color: #fff; }
@@ -87,6 +87,10 @@
   @keyframes r { to { transform: rotate(360deg); } }
   .hide { display: none !important; }
   .note { font-size: 11px; color: var(--muted); }
+  .money { font-variant-numeric: tabular-nums; }
+  input.pr { width: 74px; padding: 2px 4px; text-align: right; }
+  input.pr.chg { border-color: var(--green); background: var(--green-soft); }
+  .tot { font-size: 15px; font-weight: 700; color: var(--green); }
   .files a { display: block; color: var(--green); cursor: pointer; text-decoration: underline; font-size: 11px; word-break: break-all; }
 </style>
 </head>
@@ -113,10 +117,11 @@
     physics: '<path d="M4 19c3-9 6-12 8-12s4 6 8 6"/><path d="M4 5h4M4 9h2"/><circle cx="17" cy="6" r="2"/>',
     insolation: '<circle cx="12" cy="12" r="3.5"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>',
     schedules: '<rect x="4" y="3.5" width="7" height="17" rx="1"/><rect x="13" y="7" width="7" height="7" rx="1"/><path d="M13 10.5h7M16.5 7v7M9 12h.01"/>',
+    boq: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8v3H8zM8.5 13.5h.01M12 13.5h.01M15.5 13.5h.01M8.5 17h.01M12 17h.01M15.5 17h.01"/>',
     plan: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h5M10 16.5h6"/>'
   };
   const SECTIONS = [
-    ['profile', 'Projekti'], ['template', 'Template'], ['composites', 'Kompozitat'], ['techdesc', 'Përshkrimi'],
+    ['profile', 'Projekti'], ['template', 'Template'], ['composites', 'Kompozitat'], ['techdesc', 'Përshkrimi'], ['boq', 'Paramasa'],
     ['physics', 'Fizika'], ['insolation', 'Insolimi'], ['schedules', 'Skemat'], ['plan', 'Plani dinamik']
   ];
 
@@ -272,6 +277,29 @@
       return h;
     },
 
+    boq: function () {
+      const pl = (S.catalog && S.catalog.prices) || { items: [], groups: [] };
+      const own = (S.office && S.office.cmimet) || {};
+      const b = S.boqParams || { vat: pl.vat != null ? pl.vat : 18, contingency: pl.contingency != null ? pl.contingency : 5, factor: 1, includeZero: false };
+      let h = '<h2>Paramasa dhe parallogaria</h2><p class="sub">Sasitë nga modeli (kompozitat ARBS sipas shtresave, kolonat, trarët, elementet bazike, zonat, dyert dhe dritaret) × çmimet njësi të tregut në Kosovë' + (pl.priceLevel ? ' (' + esc(pl.priceLevel) + ')' : '') + '.</p>';
+      h += '<div class="card"><h3>Parametrat</h3><div class="row"><label class="f"><span>TVSH (%)</span><input type="number" step="any" id="bqVat" value="' + esc(b.vat) + '"></label><label class="f"><span>Të paparashikuarat (%)</span><input type="number" step="any" id="bqCont" value="' + esc(b.contingency) + '"></label><label class="f"><span>Koeficienti i çmimeve</span><input type="number" step="0.01" id="bqFac" value="' + esc(b.factor) + '"></label></div>';
+      h += '<label class="chk"><input type="checkbox" id="bqZero"' + (b.includeZero ? ' checked' : '') + '><span>Shfaq edhe pozicionet me sasi 0<small>p.sh. për t\'i plotësuar me dorë në Word/Excel</small></span></label>';
+      h += '<p class="note">Dokumentet: parallogaria (HTML + Word), paramasa për ofertim pa çmime (Word) dhe tabela CSV për Excel. Emërtoni kompozitat me kodin ARBS (p.sh. «MJ-01 …») që sasitë e shtresave të njihen.</p>';
+      h += '<div class="btns"><button class="b" id="mkBoq">Gjenero paramasën dhe parallogarinë</button><button class="b s" id="prevBoq">Vetëm llogarit</button></div></div><div id="boqOut"></div>';
+      h += '<div class="card"><h3>Lista e çmimeve njësi (€ pa TVSH)</h3><p class="note">' + esc(pl.source || '') + ' Çmimet që ndryshoni ruhen në profilin e zyrës dhe vlejnë për të gjitha projektet.</p>';
+      (pl.groups || []).forEach(function (g) {
+        const items = (pl.items || []).filter(function (it) { return it.g === g.id; });
+        if (!items.length) return;
+        h += '<details><summary>' + esc(g.id + '. ' + g.name) + ' (' + items.length + ')</summary><table class="t"><tr><th>Nr.</th><th>Pozicioni</th><th>Njës.</th><th class="r">€</th></tr>';
+        items.forEach(function (it) {
+          const v = own[it.code] != null ? own[it.code] : '';
+          h += '<tr><td>' + esc(it.code) + '</td><td>' + esc(it.d) + (it.pcm ? ' <span class="note">(+' + num(it.pcm) + ' €/cm)</span>' : '') + '</td><td>' + esc(it.u) + '</td><td class="r"><input type="number" step="0.01" min="0" class="pr' + (v !== '' ? ' chg' : '') + '" data-price="' + esc(it.code) + '" placeholder="' + num(it.p) + '" value="' + esc(v) + '"></td></tr>';
+        });
+        h += '</table></details>';
+      });
+      h += '<div class="btns"><button class="b s" id="savePr">Ruaj çmimet e zyrës</button><button class="b s" id="resetPr">Rikthe çmimet orientuese</button></div></div>';
+      return h;
+    },
     physics: function () {
       const used = (S.model && S.model.composites) || [];
       let h = '<h2>Fizika ndërtimore nga modeli</h2><p class="sub">Koeficienti U (SK EN ISO 6946), kontrolli U<sub>max</sub> dhe difuzioni i avullit (Glaser) për kompozitat e përdorura.</p>';
@@ -397,6 +425,38 @@
     techdesc: function () {
       $('mkTech').onclick = function () { run('technicalDescription', {}, 'Përshkrimi teknik u gjenerua').then(function (r) { if (r && r.ok) $('techOut').innerHTML = filesHtml(r); }); };
     },
+    boq: function () {
+      function params (exp) {
+        const p = { vat: Number($('bqVat').value), contingency: Number($('bqCont').value), factor: Number($('bqFac').value) || 1, includeZero: $('bqZero').checked };
+        S.boqParams = p;
+        return Object.assign({ export: exp }, p);
+      }
+      function show (r) {
+        if (!r || !r.ok || !r.boq) return;
+        const x = r.boq;
+        let h = '<div class="card"><h3>Rezultati</h3><div class="kv"><b>Punimet</b><span class="money">' + money(x.works) + ' €</span><b>Të paparashikuarat ' + num(x.contingencyRate, 0) + '%</b><span class="money">' + money(x.contingency) + ' €</span><b>Gjithsej pa TVSH</b><span class="money">' + money(x.net) + ' €</span><b>TVSH ' + num(x.vatRate, 0) + '%</b><span class="money">' + money(x.vat) + ' €</span><b>Gjithsej me TVSH</b><span class="tot money">' + money(x.total) + ' €</span>' +
+          (x.bts ? '<b>Për m² BTS</b><span class="money">' + money(x.perM2) + ' €/m² pa TVSH (BTS ' + num(x.bts, 1) + ' m²)</span>' : '') + '</div>' + filesHtml(r) + '</div>';
+        h += '<div class="card"><h3>Rekapitulimi</h3><table class="t"><tr><th>Grupi (kliko për pozicionet)</th><th class="r">€</th><th class="r">%</th></tr>' + x.groups.map(function (g, gi) {
+          return '<tr class="bqg" data-g="' + gi + '" style="cursor:pointer"><td><b>' + esc(g.id) + '.</b> ' + esc(g.name) + '</td><td class="r money">' + money(g.total) + '</td><td class="r">' + num(x.works ? g.total / x.works * 100 : 0, 1) + '</td></tr>' +
+            '<tr class="hide" id="bql' + gi + '"><td colspan="3"><table class="t">' + g.lines.map(function (l) {
+              return '<tr><td>' + esc(l.code) + (l.estimated ? '*' : '') + '</td><td>' + esc(l.desc.length > 80 ? l.desc.slice(0, 78) + '…' : l.desc) + (l.source ? '<br><span class="note">' + esc(l.source) + '</span>' : '') + '</td><td class="r">' + num(l.qty, l.unit === 'kg' || l.unit === 'copë' ? 0 : 2) + ' ' + esc(l.unit) + '<br><span class="note">× ' + money(l.price) + '</span></td><td class="r money">' + money(l.value) + '</td></tr>';
+            }).join('') + '</table></td></tr>';
+        }).join('') + '</table>' + (x.notes && x.notes.length ? '<p class="note">' + x.notes.map(esc).join('<br>') + '</p>' : '') + '</div>';
+        $('boqOut').innerHTML = h;
+        document.querySelectorAll('.bqg').forEach(function (r) { r.onclick = function () { $('bql' + r.getAttribute('data-g')).classList.toggle('hide'); }; });
+      }
+      $('mkBoq').onclick = function () { run('billOfQuantities', params(true), 'Paramasa dhe parallogaria u gjeneruan').then(show); };
+      $('prevBoq').onclick = function () { run('billOfQuantities', params(false), 'Parallogaria u llogarit').then(show); };
+      document.querySelectorAll('[data-price]').forEach(function (i) { i.oninput = function () { i.classList.toggle('chg', i.value !== ''); }; });
+      function collect () { const o = {}; document.querySelectorAll('[data-price]').forEach(function (i) { if (i.value !== '' && !isNaN(Number(i.value))) o[i.getAttribute('data-price')] = Number(i.value); }); return o; }
+      $('savePr').onclick = function () {
+        const pr = collect();
+        run('savePrices', { prices: pr }, 'Çmimet e zyrës u ruajtën').then(function (r) { if (r && r.ok) { S.office = Object.assign({}, S.office, { cmimet: pr }); status('U ruajtën ' + r.count + ' çmime të zyrës', 'ok'); } });
+      };
+      $('resetPr').onclick = function () {
+        run('savePrices', { prices: {} }, 'U rikthyen çmimet orientuese').then(function (r) { if (r && r.ok) { S.office = Object.assign({}, S.office, { cmimet: {} }); open('boq'); } });
+      };
+    },
     physics: function () {
       $('readModel').onclick = function () { run('modelSummary', {}, 'Modeli u lexua').then(function (r) { if (r && r.ok) { S.model = r; open('physics'); } }); };
       $('mkPhys').onclick = function () {
@@ -441,6 +501,7 @@
     }
   };
 
+  function money (v) { const n = Math.round((Number(v) || 0) * 100) / 100; const p = n.toFixed(2).split('.'); return p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + p[1]; }
   function fmt (iso) { if (!iso) return ''; const p = String(iso).split('-'); return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : iso; }
 
   // ---------------------------------------------------------------- nisja

@@ -12,7 +12,7 @@ const std::vector<std::string>& Catalog::FileNames ()
 {
 	static const std::vector<std::string> names = {
 		"materials.json", "composites.json", "cities.json", "holidays.json",
-		"plan_template.json", "phases.json", "layers.json", "documents.json"
+		"plan_template.json", "phases.json", "layers.json", "documents.json", "prices.json"
 	};
 	return names;
 }
@@ -49,7 +49,8 @@ bool Catalog::LoadFromStrings (const std::map<std::string, std::string>& files, 
 	if (!parse ("materials.json", materialsJson) || !parse ("composites.json", compositesJson) ||
 		!parse ("cities.json", citiesJson) || !parse ("holidays.json", holidaysJson) ||
 		!parse ("plan_template.json", planJson) || !parse ("phases.json", phasesJson) ||
-		!parse ("layers.json", layersJson) || !parse ("documents.json", documentsJson))
+		!parse ("layers.json", layersJson) || !parse ("documents.json", documentsJson) ||
+		!parse ("prices.json", pricesJson))
 		return false;
 	return Build (error);
 }

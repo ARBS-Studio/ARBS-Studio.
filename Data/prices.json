@@ -1,0 +1,129 @@
+// ARBS Studio - Lista e çmimeve njësi për paramasë dhe parallogari (Republika e Kosovës)
+// Çmimet janë ORIENTUESE, në EUR pa TVSH, për punë të kryer (material + punë + transport),
+// niveli i tregut T3/2026 (beton i gatshëm 85–100 €/m³; indeksi i kostos së ndërtimit ASK +4,4% vjetor).
+// Projektuesi/zyra duhet t'i përditësojë me ofertat aktuale; çmimet e ndryshuara në paletë
+// ruhen në profilin e zyrës dhe kanë përparësi ndaj këtyre vlerave.
+//
+// "q": lista e termave [çelësi, faktori]; sasia = Σ faktori × vlera e çelësit nga modeli:
+//   L:<material>:<grupi>:a | v   sipërfaqja (m²) / vëllimi (m³) i shtresës së kompozitës
+//                                grupi = prefiksi i kodit (MJ, MT, MB, MN, DY, TH, KR, KP) ose * (të gjitha)
+//   C:<kodi ose prefiksi>:a      sipërfaqja e kompozitës (p.sh. C:KP:a, C:MJ-05:a)
+//   E:wall:conc:v|a, E:wall:mas:v|a, E:slab:conc:v|a, E:roof:a, E:column:v, E:beam:v,
+//   E:roof:eaves:l, E:roof:ridge:l, E:stair:n          elementet bazike (pa kompozitë) dhe gjatësitë e kulmit
+//   Z:a, Z:wet:a, Z:wet:n        zonat (neto), nyjet sanitare
+//   O:window:a|n|w, O:door:int:n, O:door:ext:n, O:door:gar:n   dritaret (m², copë, gjerësi m') dhe dyert
+//   I:sanitary:n                 pajisjet sanitare nga objektet e modelit
+//   BTS, GJ, EXC:v               sipërfaqja bruto, gjurma, vëllimi i gërmimit
+// "alt": termat që përdoren kur "q" jep 0 (vlerësim, shënohet në dokument).
+// "pcm": shtesa e çmimit për çdo cm trashësi (trashësia mesatare nga modeli).
+{
+  "version": 1,
+  "currency": "EUR",
+  "priceLevel": "T3/2026",
+  "source": "Çmime orientuese të tregut në Kosovë (oferta tipike të kompanive ndërtimore dhe furnitorëve, T3/2026). Nuk zëvendësojnë ofertat e kontraktorëve.",
+  "vat": 18,
+  "contingency": 5,
+  "groups": [
+    { "id": "I",    "name": "Punimet përgatitore" },
+    { "id": "II",   "name": "Punimet e dheut" },
+    { "id": "III",  "name": "Punimet e betonit dhe betonit të armuar" },
+    { "id": "IV",   "name": "Punimet e muraturës" },
+    { "id": "V",    "name": "Punimet e izolimit (termo dhe hidro)" },
+    { "id": "VI",   "name": "Suvatimi, patinimi dhe lyerja" },
+    { "id": "VII",  "name": "Punimet e dyshemeve dhe veshjeve" },
+    { "id": "VIII", "name": "Punimet e kulmit dhe të llamarinës" },
+    { "id": "IX",   "name": "Dyert, dritaret dhe pragjet" },
+    { "id": "X",    "name": "Punimet e fasadës" },
+    { "id": "XI",   "name": "Instalimet (vlerësim për m² BTS)" }
+  ],
+  "items": [
+    { "code": "1.01", "g": "I", "u": "m²", "p": 6.00, "d": "Organizimi i kantierit: rrethoja, kontejneri, tabela e projektit, lidhjet e përkohshme (rrymë, ujë), WC kimik – për m² BTS", "q": [["BTS", 1]] },
+    { "code": "1.02", "g": "I", "u": "m²", "p": 1.20, "d": "Pastrimi i terrenit nga shkurret, mbeturinat dhe shtresa humusore deri 20 cm, me largim", "q": [["GJ", 1.6]] },
+    { "code": "1.03", "g": "I", "u": "m²", "p": 1.50, "d": "Piketimi i objektit dhe vendosja e profileve (gjeodet i licencuar)", "q": [["GJ", 1]] },
+    { "code": "1.04", "g": "I", "u": "m²", "p": 2.00, "d": "Pastrimi përfundimtar i objektit dhe i parcelës para pranimit teknik", "q": [["BTS", 1]] },
+
+    { "code": "2.01", "g": "II", "u": "m³", "p": 4.50, "d": "Gërmim i dheut të kategorisë III–IV me makineri për themele/bodrum, me rregullim të skarpatave", "q": [["EXC:v", 1]] },
+    { "code": "2.02", "g": "II", "u": "m³", "p": 16.00, "d": "Gërmim plotësues me dorë dhe nivelim i bazës së themelit", "q": [["GJ", 0.05]] },
+    { "code": "2.03", "g": "II", "u": "m³", "p": 6.00, "d": "Ngarkimi dhe largimi i dheut të tepërt në deponi të lejuar deri 10 km (me koef. shkrifërimi 1,25)", "q": [["EXC:v", 0.9]] },
+    { "code": "2.04", "g": "II", "u": "m³", "p": 4.00, "d": "Mbushja anësore e themeleve me dhe nga gërmimi, në shtresa 30 cm me ngjeshje", "q": [["EXC:v", 0.22]] },
+    { "code": "2.05", "g": "II", "u": "m³", "p": 24.00, "d": "Tampon zhavorri/çakëlli 0–63 mm nën pllaka, i ngjeshur deri Ms ≥ 40 MN/m²", "q": [["L:ZHAV:DY:v", 1], ["L:ZHAV:TH:v", 1]], "alt": [["GJ", 0.2]] },
+
+    { "code": "3.01", "g": "III", "u": "m³", "p": 95.00, "d": "Beton i dobët C12/15 (nënshtresë) d = 5–10 cm nën themele dhe pllaka në tokë", "q": [["L:BET-DOB:*:v", 1]], "alt": [["GJ", 0.1]] },
+    { "code": "3.02", "g": "III", "u": "m³", "p": 118.00, "d": "Beton i armuar C25/30 për themele (pllakë themeli, shirita, mure themeli), me pompë dhe vibrim", "q": [["L:BET-AR:TH:v", 1], ["L:BET-C30:TH:v", 1]] },
+    { "code": "3.03", "g": "III", "u": "m³", "p": 135.00, "d": "Beton i armuar C25/30 për mure (mure bodrumi, mure b/a të fasadës, bërthama)", "q": [["L:BET-AR:MJ:v", 1], ["L:BET-AR:MT:v", 1], ["L:BET-AR:MB:v", 1], ["E:wall:conc:v", 1]] },
+    { "code": "3.04", "g": "III", "u": "m³", "p": 130.00, "d": "Beton i armuar C25/30 për pllaka (pllaka në tokë, ndërkatëshe, kulmi i rrafshët, ballkone)", "q": [["L:BET-AR:DY:v", 1], ["L:BET-AR:KR:v", 1], ["E:slab:conc:v", 1]] },
+    { "code": "3.05", "g": "III", "u": "m³", "p": 145.00, "d": "Beton i armuar C25/30 për kolona dhe trarë", "q": [["E:column:v", 1], ["E:beam:v", 1]] },
+    { "code": "3.06", "g": "III", "u": "m³", "p": 105.00, "d": "Beton i lehtë për krijimin e pjerrësisë në kulmin e rrafshët, d mesatare sipas projektit", "q": [["L:BET-PJE:*:v", 1]] },
+    { "code": "3.07", "g": "III", "u": "kg", "p": 1.25, "d": "Armatura B500B – përpunimi, montimi dhe lidhja (themele ≈ 90 kg/m³, mure ≈ 80, pllaka ≈ 110, kolona/trarë ≈ 160 kg/m³)", "q": [["L:BET-AR:TH:v", 90], ["L:BET-C30:TH:v", 90], ["L:BET-AR:MJ:v", 80], ["L:BET-AR:MT:v", 80], ["L:BET-AR:MB:v", 80], ["E:wall:conc:v", 80], ["L:BET-AR:DY:v", 110], ["L:BET-AR:KR:v", 110], ["E:slab:conc:v", 110], ["E:column:v", 160], ["E:beam:v", 160]] },
+    { "code": "3.08", "g": "III", "u": "m²", "p": 14.00, "d": "Kallëpi i themeleve (anësor)", "q": [["L:BET-AR:TH:v", 0.5], ["L:BET-C30:TH:v", 0.5]] },
+    { "code": "3.09", "g": "III", "u": "m²", "p": 16.00, "d": "Kallëpi i mureve b/a (të dyja anët)", "q": [["L:BET-AR:MJ:a", 2], ["L:BET-AR:MT:a", 2], ["L:BET-AR:MB:a", 2], ["E:wall:conc:a", 2]] },
+    { "code": "3.10", "g": "III", "u": "m²", "p": 17.00, "d": "Kallëpi i pllakave ndërkatëshe dhe të kulmit me mbështetëse (pa pllakat në tokë)", "q": [["L:BET-AR:DY:a", 1], ["L:BET-AR:KR:a", 1], ["E:slab:conc:a", 1], ["C:DY-01:a", -1]] },
+    { "code": "3.11", "g": "III", "u": "m²", "p": 19.00, "d": "Kallëpi i kolonave dhe trarëve", "q": [["E:column:v", 9], ["E:beam:v", 8]] },
+    { "code": "3.12", "g": "III", "u": "copë", "p": 1850.00, "d": "Shkallë b/a me krah dhe pushim (beton, armaturë, kallëp), pa veshje", "q": [["E:stair:n", 1]] },
+
+    { "code": "4.01", "g": "IV", "u": "m²", "p": 32.00, "d": "Mur me blloqe qeramike të zbrazëta d = 20–25 cm me llaç të përzier, me shtyllëza dhe rreza vertikale/horizontale", "q": [["L:BLL-QER25:*:a", 1]] },
+    { "code": "4.02", "g": "IV", "u": "m²", "p": 22.00, "d": "Mur ndarës me blloqe qeramike d = 10–12 cm, me arkitrarë mbi hapjet", "q": [["L:BLL-QER-N:*:a", 1]] },
+    { "code": "4.03", "g": "IV", "u": "m²", "p": 38.00, "d": "Mur me blloqe betoni qelizor (AAC) d = 25–30 cm me ngjitës të hollë", "q": [["L:BET-QEL:*:a", 1]] },
+    { "code": "4.04", "g": "IV", "u": "m²", "p": 28.00, "d": "Mur me blloqe betoni d = 20 cm", "q": [["L:BLL-BET:*:a", 1]] },
+    { "code": "4.05", "g": "IV", "u": "m²", "p": 45.00, "d": "Mur me tulla të plota d = 25 cm", "q": [["L:TUL-PL:*:a", 1]] },
+    { "code": "4.06", "g": "IV", "u": "m³", "p": 120.00, "d": "Murature nga modeli pa kompozitë ARBS (mure bazike jo-beton)", "q": [["E:wall:mas:v", 1]] },
+
+    { "code": "5.01", "g": "V", "u": "m²", "p": 11.00, "d": "Hidroizolim me membranë bitumi SBS d = 4 mm, me shtresë bitumi të ftohtë (prajmer), me mbivendosje 10 cm", "q": [["L:HID-BIT:*:a", 1]] },
+    { "code": "5.02", "g": "V", "u": "m²", "p": 18.00, "d": "Membranë hidroizoluese PVC/TPO d = 1,5–2,0 mm për kulm të rrafshët, me lidhje në parapete", "q": [["L:HID-PVC:*:a", 1]] },
+    { "code": "5.03", "g": "V", "u": "m²", "p": 12.00, "d": "Hidroizolim i lëngshëm çimentoje me shirita në kënde – nyjet sanitare (dysheme + mure deri 2,0 m) dhe ballkone", "q": [["L:HID-LNG:*:a", 1], ["Z:wet:a", 2.6]] },
+    { "code": "5.04", "g": "V", "u": "m²", "p": 4.50, "d": "Barrierë avulli me bitum dhe alumin", "q": [["L:BAV-AL:*:a", 1]] },
+    { "code": "5.05", "g": "V", "u": "m²", "p": 0.90, "d": "Folie polietileni PE 0,2 mm (ndarëse/mbrojtëse)", "q": [["L:PE:*:a", 1]] },
+    { "code": "5.06", "g": "V", "u": "m²", "p": 3.50, "d": "Membranë difuzive paropërshkuese (kulm i pjerrët / fasadë e ventiluar)", "q": [["L:MEM-DIF:*:a", 1]] },
+    { "code": "5.07", "g": "V", "u": "m²", "p": 1.60, "d": "Gjeotekstil 200 g/m²", "q": [["L:GJEO:*:a", 1]] },
+    { "code": "5.08", "g": "V", "u": "m²", "p": 4.50, "d": "Membranë drenazhuese HDPE me gunga për mbrojtjen e hidroizolimit", "q": [["L:DREN:*:a", 1]] },
+    { "code": "5.09", "g": "V", "u": "m²", "p": 4.00, "pcm": 1.20, "d": "Termoizolim me XPS (mure dhe pllaka në kontakt me tokën, kulm i përmbysur)", "q": [["L:XPS:*:a", 1]] },
+    { "code": "5.10", "g": "V", "u": "m²", "p": 2.50, "pcm": 0.60, "d": "Termoizolim i dyshemesë me EPS 150 (nën estrih)", "q": [["L:EPS-150:*:a", 1]] },
+    { "code": "5.11", "g": "V", "u": "m²", "p": 3.00, "pcm": 0.50, "d": "Izolim kundër zhurmës goditëse EPS-T nën estrih lundrues, me shirit anësor", "q": [["L:EPS-T:*:a", 1]] },
+    { "code": "5.12", "g": "V", "u": "m²", "p": 3.50, "pcm": 0.80, "d": "Termoizolim i kulmit të rrafshët me EPS 200", "q": [["L:EPS-200:*:a", 1]] },
+    { "code": "5.13", "g": "V", "u": "m²", "p": 5.00, "pcm": 1.30, "d": "Termoizolim i kulmit të rrafshët me lesh guri MW", "q": [["L:MW-K:*:a", 1]] },
+    { "code": "5.14", "g": "V", "u": "m²", "p": 3.00, "pcm": 0.55, "d": "Lesh mineral në mure ndarëse, mes mahive ose mbi tavan", "q": [["L:MW-S:*:a", 1]] },
+    { "code": "5.15", "g": "V", "u": "m²", "p": 6.00, "pcm": 1.50, "d": "Termoizolim i tavanit mbi hapësirë të pangrohur/ajër me pllaka lesh guri, me ngjitje dhe kunja", "q": [["L:MW-F:DY:a", 1]] },
+
+    { "code": "6.01", "g": "VI", "u": "m²", "p": 8.50, "d": "Suvatim i mureve dhe plafoneve me llaç gëlqere-çimento (makinerik) d = 1,5–2,0 cm", "q": [["L:LLA-GC:*:a", 1]] },
+    { "code": "6.02", "g": "VI", "u": "m²", "p": 4.50, "d": "Patinim (glet) me gips në dy shtresa, me lëmim", "q": [["L:LLA-GC:*:a", 1], ["L:PAT-GIP:*:a", 1], ["L:GK:*:a", 0.5]] },
+    { "code": "6.03", "g": "VI", "u": "m²", "p": 3.20, "d": "Lyerje me bojë dispersive në dy shtresa, me prajmer", "q": [["L:LLA-GC:*:a", 1], ["L:PAT-GIP:*:a", 1], ["L:GK:*:a", 0.5]] },
+    { "code": "6.04", "g": "VI", "u": "m²", "p": 12.00, "d": "Pllaka gipskartoni në nënkonstruksion metalik (për një shtresë), me fugim", "q": [["L:GK:*:a", 1]] },
+
+    { "code": "7.01", "g": "VII", "u": "m²", "p": 6.00, "pcm": 0.80, "d": "Estrih çimentoje i armuar me fibra, i lëmuar, d sipas kompozitës", "q": [["L:EST-C:*:a", 1]] },
+    { "code": "7.02", "g": "VII", "u": "m²", "p": 28.00, "d": "Dysheme me pllaka qeramike/granit-porcelan me ngjitës fleksibil dhe fugim (material mesatar ≈ 14 €/m²)", "q": [["L:PLL-QER:DY:a", 1]] },
+    { "code": "7.03", "g": "VII", "u": "m²", "p": 45.00, "d": "Parket druri lisi me ngjitje, lëmim dhe llak në tre shtresa", "q": [["L:PARK:*:a", 1]] },
+    { "code": "7.04", "g": "VII", "u": "m²", "p": 18.00, "d": "Dysheme laminat AC4 me nënshtresë", "q": [["L:LAMI:*:a", 1]] },
+    { "code": "7.05", "g": "VII", "u": "m²", "p": 55.00, "d": "Dysheme me pllaka guri natyror", "q": [["L:PLL-GUR:*:a", 1]] },
+    { "code": "7.06", "g": "VII", "u": "m²", "p": 38.00, "d": "Pllaka betoni mbi mbajtës të rregullueshëm (terasë e shkelshme)", "q": [["L:PLL-BET:*:a", 1]] },
+    { "code": "7.07", "g": "VII", "u": "m²", "p": 30.00, "d": "Veshje e mureve me pllaka qeramike në banjo/WC (deri 2,4 m)", "q": [["Z:wet:a", 2.5]] },
+    { "code": "7.08", "g": "VII", "u": "m'", "p": 7.00, "d": "Shirit anësor (sokël) i dyshemesë", "q": [["Z:a", 0.8]] },
+
+    { "code": "8.01", "g": "VIII", "u": "m²", "p": 32.00, "d": "Konstruksioni i drurit të kulmit (mahi, fetë, shtyllëza, rrëza) nga pisha klasa C24, me impregnim", "q": [["C:KP-01:a", 1], ["C:KP-02:a", 1]] },
+    { "code": "8.02", "g": "VIII", "u": "m²", "p": 9.00, "d": "Shalim me dërrasa pishe d = 24 mm", "q": [["L:DRU-P:*:a", 1]] },
+    { "code": "8.03", "g": "VIII", "u": "m²", "p": 11.00, "d": "Pllaka OSB", "q": [["L:OSB:*:a", 1]] },
+    { "code": "8.04", "g": "VIII", "u": "m²", "p": 26.00, "d": "Mbulesë me tjegulla qeramike me letva dhe kundërletva, me elementet e kulmit", "q": [["L:TJEG:*:a", 1]] },
+    { "code": "8.05", "g": "VIII", "u": "m²", "p": 42.00, "d": "Kulm me panele sanduiç PIR d = 10 cm, me elementet lidhëse", "q": [["L:PIR:*:a", 1]] },
+    { "code": "8.06", "g": "VIII", "u": "m'", "p": 22.00, "d": "Ulluqe horizontale dhe vertikale prej llamarine të lyer/alumini r.š. 33 cm", "q": [["E:roof:eaves:l", 1.6]], "alt": [["C:KP:a", 0.35], ["C:KR:a", 0.25]] },
+    { "code": "8.07", "g": "VIII", "u": "m'", "p": 14.00, "d": "Kulmore (kapelinë) dhe veshje e kreshtave", "q": [["E:roof:ridge:l", 1]] },
+    { "code": "8.08", "g": "VIII", "u": "m'", "p": 24.00, "d": "Veshje e parapetit dhe e skajeve të kulmit të rrafshët me llamarinë r.š. 50 cm", "q": [["C:KR:a", 0.25]] },
+    { "code": "8.09", "g": "VIII", "u": "m²", "p": 30.00, "d": "Mbulesë kulmi nga modeli pa kompozitë ARBS (vlerësim)", "q": [["E:roof:a", 1]] },
+
+    { "code": "9.01", "g": "IX", "u": "m²", "p": 210.00, "d": "Dritare dhe dyer ballkoni PVC (profil 6–7 dhoma, xham i trefishtë Ug ≤ 0,7, Uw ≤ 1,1 W/m²K) me montim RAL", "q": [["O:window:a", 1]] },
+    { "code": "9.02", "g": "IX", "u": "copë", "p": 230.00, "d": "Derë e brendshme MDF/druri me kasë, doreza dhe montim", "q": [["O:door:int:n", 1]] },
+    { "code": "9.03", "g": "IX", "u": "copë", "p": 1100.00, "d": "Derë hyrëse alumini/çeliku e termoizoluar me bravë sigurie", "q": [["O:door:ext:n", 1]] },
+    { "code": "9.04", "g": "IX", "u": "copë", "p": 1500.00, "d": "Derë garazhi seksionale e motorizuar", "q": [["O:door:gar:n", 1]] },
+    { "code": "9.05", "g": "IX", "u": "m'", "p": 28.00, "d": "Prag i jashtëm i dritareve (alumin/granit) r.š. 25–30 cm", "q": [["O:window:w", 1]] },
+    { "code": "9.06", "g": "IX", "u": "m'", "p": 22.00, "d": "Prag i brendshëm i dritareve (granit/mermer) r.š. 20 cm", "q": [["O:window:w", 1]] },
+
+    { "code": "10.01", "g": "X", "u": "m²", "p": 26.00, "pcm": 1.20, "d": "Fasadë termike kontaktuese ETICS me EPS (ngjitës, kunja, rrjetë armuese, llaç dekorativ silikoni), komplet", "q": [["L:EPS-F:MJ:a", 1]] },
+    { "code": "10.02", "g": "X", "u": "m²", "p": 32.00, "pcm": 1.60, "d": "Fasadë termike kontaktuese ETICS me lesh guri MW (klasa A1), komplet", "q": [["L:MW-F:MJ:a", 1]] },
+    { "code": "10.03", "g": "X", "u": "m²", "p": 62.00, "d": "Fasadë e ventiluar – nënkonstruksion alumini dhe veshje me pllaka qeramike/HPL", "q": [["C:MJ-05:a", 1]] },
+    { "code": "10.04", "g": "X", "u": "m²", "p": 9.00, "pcm": 0.70, "d": "Termoizolim i murit ndaj shkallëve/hapësirës së pangrohur me EPS dhe llaç armues", "q": [["L:EPS-F:MN:a", 1]] },
+    { "code": "10.05", "g": "X", "u": "m²", "p": 4.00, "d": "Skelë fasade metalike me rrjetë mbrojtëse, montim dhe demontim (për kohën e punimeve)", "q": [["C:MJ:a", 1.25]] },
+
+    { "code": "11.01", "g": "XI", "u": "m²", "p": 38.00, "d": "Instalimet elektrike të rrymës së fortë dhe të dobët (tabelat, kabllot, prizat, ndriçimi bazë, tokëzimi, rrufepritësi)", "q": [["BTS", 1]] },
+    { "code": "11.02", "g": "XI", "u": "m²", "p": 20.00, "d": "Instalimet e ujësjellësit dhe kanalizimit (gypat, pusetat, lidhjet), pa pajisjet sanitare", "q": [["BTS", 1]] },
+    { "code": "11.03", "g": "XI", "u": "m²", "p": 55.00, "d": "Ngrohja qendrore me pompë termike ajër-ujë dhe dysheme rrezatuese (ose ekuivalente)", "q": [["BTS", 1]] },
+    { "code": "11.04", "g": "XI", "u": "copë", "p": 280.00, "d": "Pajisjet sanitare (WC, lavaman, dush/vaskë, bateri) me montim – çmim mesatar për copë", "q": [["I:sanitary:n", 1]], "alt": [["Z:wet:n", 3]] }
+  ]
+}

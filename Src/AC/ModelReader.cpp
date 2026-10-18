@@ -6,6 +6,7 @@
 #include "AC/CompositeBuilder.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <map>
 #include <set>
@@ -161,19 +162,40 @@ Json::Value ModelReader::Read (bool selectionOnly)
 	}
 	model.Set ("objects", objects);
 
-	// --- kompozitat e perdorura (siperfaqet) per fiziken e nderteses
+	// --- kompozitat e perdorura (siperfaqet) dhe elementet per paramasen
 	const std::map<Int32, std::string> compNames = CompositeNames ();
 	std::map<std::string, double> areaByCode;
 	std::map<std::string, std::string> nameByCode;
+	std::map<std::string, double> unknownByName;
+	std::map<Int32, bool> concreteCache;
+	std::map<std::string, double> elems;
 	auto addComposite = [&] (const API_AttributeIndex& idx, double area) {
 		auto it = compNames.find (idx.ToInt32_Deprecated ());
 		if (it == compNames.end ()) return;
 		const std::string code = CompositeBuilder::CodeFromName (it->second);
-		if (code.empty ()) return;
+		if (code.empty ()) { unknownByName[it->second] += area; return; }
 		areaByCode[code] += area;
 		nameByCode[code] = it->second;
 	};
-	const API_ElemTypeID structTypes[] = { API_WallID, API_SlabID, API_RoofID };
+	auto isConcrete = [&] (const API_AttributeIndex& idx) -> bool {
+		const Int32 key = idx.ToInt32_Deprecated ();
+		auto it = concreteCache.find (key);
+		if (it != concreteCache.end ()) return it->second;
+		API_Attribute a {};
+		GS::UniString n;
+		a.header.typeID = API_BuildingMaterialID;
+		a.header.index = idx;
+		a.header.uniStringNamePtr = &n;
+		bool conc = false;
+		if (ACAPI_Attribute_Get (&a) == NoError) {
+			std::string low = ToUtf8 (n);
+			for (char& c : low) c = static_cast<char> (std::tolower (static_cast<unsigned char> (c)));
+			conc = low.find ("concrete") != std::string::npos || low.find ("beton") != std::string::npos || low.find ("b/a") != std::string::npos;
+		}
+		concreteCache[key] = conc;
+		return conc;
+	};
+	const API_ElemTypeID structTypes[] = { API_WallID, API_SlabID, API_RoofID, API_ColumnID, API_BeamID };
 	for (API_ElemTypeID t : structTypes) {
 		for (const API_Guid& g : Elements (t, false, selection)) {
 			API_Element el {};
@@ -185,14 +207,34 @@ Json::Value ModelReader::Read (bool selectionOnly)
 			API_QuantitiesMask mask;
 			ACAPI_ELEMENT_QUANTITY_MASK_SETFULL (mask);
 			const bool hasQ = ACAPI_Element_GetQuantities (g, nullptr, &quantities, &mask) == NoError;
-			if (t == API_WallID && el.wall.modelElemStructureType == API_CompositeStructure)
-				addComposite (el.wall.composite, hasQ ? std::max (q.wall.surface1, q.wall.surface2) : 0.0);
-			else if (t == API_SlabID && el.slab.modelElemStructureType == API_CompositeStructure)
-				addComposite (el.slab.composite, hasQ ? q.slab.topSurface : 0.0);
-			else if (t == API_RoofID && el.roof.shellBase.modelElemStructureType == API_CompositeStructure)
-				addComposite (el.roof.shellBase.composite, hasQ ? q.roof.topSurface : 0.0);
+			if (!hasQ) continue;
+			if (t == API_WallID) {
+				const double area = std::max (q.wall.surface1, q.wall.surface2);
+				if (el.wall.modelElemStructureType == API_CompositeStructure) addComposite (el.wall.composite, area);
+				else if (el.wall.modelElemStructureType == API_BasicStructure) {
+					const char* k = isConcrete (el.wall.buildingMaterial) ? "conc" : "mas";
+					elems[std::string ("E:wall:") + k + ":v"] += q.wall.volume;
+					elems[std::string ("E:wall:") + k + ":a"] += area;
+				}
+			} else if (t == API_SlabID) {
+				if (el.slab.modelElemStructureType == API_CompositeStructure) addComposite (el.slab.composite, q.slab.topSurface);
+				else if (el.slab.modelElemStructureType == API_BasicStructure) {
+					elems["E:slab:conc:v"] += q.slab.volume;
+					elems["E:slab:conc:a"] += q.slab.topSurface;
+				}
+			} else if (t == API_RoofID) {
+				if (el.roof.shellBase.modelElemStructureType == API_CompositeStructure) addComposite (el.roof.shellBase.composite, q.roof.topSurface);
+				else elems["E:roof:a"] += q.roof.topSurface;
+				elems["E:roof:eaves:l"] += q.roof.eavesLength;
+				elems["E:roof:ridge:l"] += q.roof.ridgesLength + q.roof.hipsLength;
+			} else if (t == API_ColumnID) {
+				elems["E:column:v"] += q.column.coreVolume + q.column.veneVolume;
+			} else if (t == API_BeamID) {
+				elems["E:beam:v"] += q.beam.volume;
+			}
 		}
 	}
+	elems["E:stair:n"] += static_cast<double> (Elements (API_StairID, false, selection).GetSize ());
 	Json::Value comps = Json::Value::MakeArray ();
 	for (const auto& kv : areaByCode) {
 		Json::Value c = Json::Value::MakeObject ();
@@ -202,6 +244,18 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		comps.Push (c);
 	}
 	model.Set ("composites", comps);
+	Json::Value unknown = Json::Value::MakeArray ();
+	for (const auto& kv : unknownByName) {
+		if (kv.second < 0.05) continue;
+		Json::Value u = Json::Value::MakeObject ();
+		u.Set ("name", kv.first);
+		u.Set ("area", std::round (kv.second * 10.0) / 10.0);
+		unknown.Push (u);
+	}
+	model.Set ("unknownComposites", unknown);
+	Json::Value elements = Json::Value::MakeObject ();
+	for (const auto& kv : elems) elements.Set (kv.first, std::round (kv.second * 1000.0) / 1000.0);
+	model.Set ("elements", elements);
 	return model;
 }
 

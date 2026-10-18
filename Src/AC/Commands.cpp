@@ -9,6 +9,7 @@
 #include "AC/ProjectStore.hpp"
 #include "AC/TemplateSetup.hpp"
 
+#include "Core/BillOfQuantities.hpp"
 #include "Core/DynamicPlan.hpp"
 #include "Core/KosovoCalendar.hpp"
 #include "Core/Reports.hpp"
@@ -96,6 +97,7 @@ Json::Value CatalogForUi ()
 	c.Set ("cities", cities);
 	c.Set ("projectFields", cat.Documents ()["projectFields"]);
 	c.Set ("law", cat.Holidays ().GetString ("law"));
+	c.Set ("prices", BillOfQuantities::PriceList (cat));
 	return c;
 }
 
@@ -284,6 +286,48 @@ Json::Value CmdModelSummary (const Json::Value&)
 	return r;
 }
 
+// cmimet e zyres (profili) + parametrat e kerkeses
+BoqOptions BoqOptionsFrom (const Json::Value& req)
+{
+	BoqOptions opt = BillOfQuantities::OptionsFromJson (req, GetCatalog ());
+	const Json::Value office = ProjectStore::LoadOffice ();
+	Json::Value merged = Json::Value::MakeObject ();
+	if (office["cmimet"].IsObject ())
+		for (const auto& kv : office["cmimet"].AsObject ()) if (kv.second.IsNumber ()) merged.Set (kv.first, kv.second);
+	if (req["overrides"].IsObject ())
+		for (const auto& kv : req["overrides"].AsObject ()) if (kv.second.IsNumber ()) merged.Set (kv.first, kv.second);
+	opt.overrides = merged;
+	return opt;
+}
+
+Json::Value CmdBillOfQuantities (const Json::Value& req)
+{
+	const Json::Value project = ProjectForReports ();
+	const Json::Value model = ModelReader::Read (false);
+	const BoqOptions opt = BoqOptionsFrom (req);
+	if (!req.GetBool ("export", true)) {
+		Json::Value r = Ok ();
+		r.Set ("boq", BillOfQuantities::ToJson (BillOfQuantities::Compute (GetCatalog (), model, project, opt)));
+		return r;
+	}
+	Json::Value r = SaveAndOpen (project, Reports::QuantitiesAndCost (GetCatalog (), project, ProjectStore::OfficeForReports (), model, opt), true);
+	if (r.GetBool ("ok")) r.Set ("boq", BillOfQuantities::ToJson (BillOfQuantities::Compute (GetCatalog (), model, project, opt)));
+	return r;
+}
+
+Json::Value CmdSavePrices (const Json::Value& req)
+{
+	Json::Value office = ProjectStore::LoadOffice ();
+	Json::Value prices = Json::Value::MakeObject ();
+	if (req["prices"].IsObject ())
+		for (const auto& kv : req["prices"].AsObject ()) if (kv.second.IsNumber () && kv.second.AsNumber () >= 0.0) prices.Set (kv.first, kv.second);
+	office.Set ("cmimet", prices);
+	if (!ProjectStore::SaveOffice (office)) return Fail ("\xC3\x87mimet e zyr\xC3\xABs nuk u ruajt\xC3\xABn.");
+	Json::Value r = Ok ();
+	r.Set ("count", static_cast<int> (prices.AsObject ().size ()));
+	return r;
+}
+
 PlanParameters PlanParamsFrom (const Json::Value& req)
 {
 	PlanParameters p;
@@ -370,6 +414,8 @@ std::string Commands::Handle (const std::string& request)
 		{ "schedule", CmdSchedule },
 		{ "technicalDescription", CmdTechnicalDescription },
 		{ "buildingPhysics", CmdBuildingPhysics },
+		{ "billOfQuantities", CmdBillOfQuantities },
+		{ "savePrices", CmdSavePrices },
 		{ "modelSummary", CmdModelSummary },
 		{ "dynamicPlan", CmdDynamicPlan },
 		{ "holidays", CmdHolidays },

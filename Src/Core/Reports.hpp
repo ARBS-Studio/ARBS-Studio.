@@ -16,6 +16,7 @@
 // =============================================================================
 #pragma once
 
+#include "BillOfQuantities.hpp"
 #include "Catalog.hpp"
 #include "DynamicPlan.hpp"
 #include "Json.hpp"
@@ -77,6 +78,10 @@ public:
 	static std::vector<ReportOutput> DynamicPlanReport (const Json::Value& project, const Json::Value& office,
 														const std::vector<PlanTask>& tasks,
 														const KosovoCalendar& cal, const PlanParameters& params);
+
+	// Paramasa dhe parallogaria (HTML + Word), paramasa per ofertim (Word) dhe CSV per Excel
+	static std::vector<ReportOutput> QuantitiesAndCost (const Catalog& cat, const Json::Value& project, const Json::Value& office,
+														const Json::Value& model, const BoqOptions& opt);
 
 	static std::string SunPathSvg (const Site& site, int year, double projectNorthDeg, int size = 520);
 	static std::string GlaserSvg (const GlaserResult& g, int width = 640, int height = 300);

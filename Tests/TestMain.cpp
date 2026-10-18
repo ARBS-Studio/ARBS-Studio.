@@ -1,6 +1,7 @@
 // =============================================================================
 // ARBS Studio - testet e berthames (kompilohen ne Linux/Windows/macOS pa Archicad)
 // =============================================================================
+#include "Core/BillOfQuantities.hpp"
 #include "Core/BuildingPhysics.hpp"
 #include "Core/Catalog.hpp"
 #include "Core/Date.hpp"
@@ -12,6 +13,8 @@
 
 #include <cmath>
 #include <cstdio>
+#include <map>
+#include <set>
 #include <string>
 
 using namespace ARBS;
@@ -186,6 +189,66 @@ static void TestSolar (const Catalog& cat)
 				 Solar::FormatHour (dec.sunrise).c_str (), Solar::FormatHour (dec.sunset).c_str ());
 }
 
+static void TestBoq (const Catalog& cat)
+{
+	std::printf ("Paramasa dhe parallogaria\n");
+	CHECK (cat.Prices ()["items"].Size () > 60);
+	CHECK (BillOfQuantities::Money (1234567.891) == "1.234.567,89");
+	CHECK (BillOfQuantities::Money (0.5) == "0,50");
+	CHECK (BillOfQuantities::Money (999.999) == "1.000,00");
+	Json::Value model = Json::Value::Parse (R"({
+		"stories": [ {"index": 0, "name": "P", "level": 0} ],
+		"zones": [ {"story": 0, "name": "Dhoma", "area": 80.0}, {"story": 0, "name": "Banjo", "area": 5.0} ],
+		"openings": [ {"kind": "window", "width": 1.2, "height": 1.5, "story": 0}, {"kind": "door", "type": "Derë hyrëse", "width": 1.0, "height": 2.1, "story": 0},
+					  {"kind": "door", "type": "Door", "width": 0.9, "height": 2.1, "story": 0} ],
+		"objects": [ {"type": "WC"}, {"type": "Lavaman"}, {"type": "Divan"} ],
+		"composites": [ {"code": "MJ-01", "area": 100.0}, {"code": "TH-01", "area": 90.0}, {"code": "XX-99", "area": 3.0} ],
+		"elements": { "E:column:v": 2.0 } })");
+	Json::Value project = Json::Value::Parse (R"({"bts": 100})");
+	std::vector<std::string> notes;
+	std::map<std::string, std::set<std::string>> src;
+	auto q = BillOfQuantities::ModelQuantities (cat, model, project, &src, &notes);
+	CHECK_NEAR (q["L:EPS-F:MJ:a"], 100.0, 1e-9);
+	CHECK_NEAR (q["L:EPS-F:MJ:v"], 10.0, 1e-9);			// 100 m2 x 10 cm
+	CHECK_NEAR (q["L:BET-AR:TH:v"], 36.0, 1e-9);		// 90 m2 x 40 cm
+	CHECK_NEAR (q["L:LLA-GC:*:a"], 100.0, 1e-9);
+	CHECK_NEAR (q["Z:wet:a"], 5.0, 1e-9);
+	CHECK_NEAR (q["O:window:a"], 1.8, 1e-9);
+	CHECK_NEAR (q["O:door:ext:n"], 1.0, 1e-9);
+	CHECK_NEAR (q["O:door:int:n"], 1.0, 1e-9);
+	CHECK_NEAR (q["I:sanitary:n"], 2.0, 1e-9);
+	CHECK_NEAR (q["GJ"], 90.0, 1e-9);
+	CHECK_NEAR (q["EXC:v"], 90.0 * 1.15, 1e-6);
+	CHECK (src["L:EPS-F:MJ:a"].count ("MJ-01") == 1);
+	CHECK (notes.size () == 1);							// XX-99 mungon ne katalog
+
+	BoqOptions opt;
+	opt.overrides.Set ("3.07", 2.0);
+	BoqResult r = BillOfQuantities::Compute (cat, model, project, opt);
+	const BoqLine* eps = nullptr; const BoqLine* rebar = nullptr; const BoqLine* found = nullptr;
+	for (const BoqGroup& g : r.groups) for (const BoqLine& l : g.lines) {
+		if (l.code == "10.01") eps = &l;
+		if (l.code == "3.07") rebar = &l;
+		if (l.code == "3.02") found = &l;
+	}
+	CHECK (eps != nullptr && found != nullptr && rebar != nullptr);
+	if (eps) { CHECK_NEAR (eps->thicknessCm, 10.0, 1e-9); CHECK_NEAR (eps->price, 26.0 + 1.2 * 10.0, 1e-9); CHECK_NEAR (eps->value, 3800.0, 1e-6); }
+	if (found) CHECK_NEAR (found->qty, 36.0, 1e-9);
+	if (rebar) { CHECK_NEAR (rebar->qty, 36.0 * 90 + 2.0 * 160, 1e-9); CHECK (rebar->overridden); CHECK_NEAR (rebar->price, 2.0, 1e-12); }
+	double sum = 0.0;
+	for (const BoqGroup& g : r.groups) { double gs = 0.0; for (const BoqLine& l : g.lines) gs += l.value; CHECK_NEAR (g.total, gs, 0.01); sum += g.total; }
+	CHECK_NEAR (r.works, sum, 0.01);
+	CHECK_NEAR (r.net, r.works * 1.05, 0.02);
+	CHECK_NEAR (r.total, r.net * 1.18, 0.02);
+	CHECK_NEAR (r.perM2, r.net / 100.0, 0.01);
+	auto outs = Reports::QuantitiesAndCost (cat, project, Json::Value::MakeObject (), model, opt);
+	CHECK (outs.size () == 4);
+	CHECK (outs[0].content.find ("REKAPITULIMI") != std::string::npos || outs[0].content.find ("Rekapitulimi") != std::string::npos);
+	CHECK (outs[2].content.find ("3.800,00") == std::string::npos);	// paramasa per ofertim pa cmime
+	CHECK (outs[0].content.find ("3.800,00") != std::string::npos);
+	std::printf ("  punimet %s EUR, gjithsej me TVSH %s EUR\n", BillOfQuantities::Money (r.works).c_str (), BillOfQuantities::Money (r.total).c_str ());
+}
+
 int main (int argc, char** argv)
 {
 	const std::string dataDir = argc > 1 ? argv[1] : "Data";
@@ -202,6 +265,7 @@ int main (int argc, char** argv)
 	TestPlan (cat);
 	TestPhysics (cat);
 	TestSolar (cat);
+	TestBoq (cat);
 	std::printf ("\n%d kontrolle, %d deshtime\n", checks, failures);
 	return failures == 0 ? 0 : 1;
 }
