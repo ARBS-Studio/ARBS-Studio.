@@ -3,24 +3,26 @@
 // "after": lista e paraardhesve: "id" (FS) ose { "id", "type": "FS"|"SS", "lag": dite pune }
 // "weather": true = pune e ndjeshme ndaj motit (perjashtohet ne periudhen dimerore)
 // "when": "basement" | "noBasement" | "multiStorey"
+// "scope" (projektet me blloqe): "common" = nje here per kompleksin; "foundation" = e perbashket kur
+//   bodrumi/themelet jane te perbashketa, perndryshe per cdo bllok; pa "scope" = per cdo bllok
 {
   "version": 1,
   "name": "Objekt banimi / afarist (P+n, me ose pa bodrum)",
   "groups": [
     { "name": "1. Punimet përgatitore", "tasks": [
-      { "id": "njoftimi", "name": "Njoftimi për fillimin e punimeve dhe hapja e ditarit të ndërtimit", "duration": 0, "notes": "UA (MMPH) Nr. 05/2017; UA Nr. 15/2013 për ditarin e ndërtimit" },
-      { "id": "kantieri", "name": "Rrethimi dhe organizimi i kantierit, tabela informuese", "duration": { "base": 4, "per100m2": 0.3, "max": 10 }, "after": ["njoftimi"], "crew": "Kontraktori" },
-      { "id": "shenjimi", "name": "Shënjimi gjeodezik i objektit dhe boshteve", "duration": 2, "after": [{ "id": "kantieri", "type": "SS", "lag": 2 }], "crew": "Gjeodeti" }
+      { "id": "njoftimi", "scope": "common", "name": "Njoftimi për fillimin e punimeve dhe hapja e ditarit të ndërtimit", "duration": 0, "notes": "UA (MMPH) Nr. 05/2017; UA Nr. 15/2013 për ditarin e ndërtimit" },
+      { "id": "kantieri", "scope": "common", "name": "Rrethimi dhe organizimi i kantierit, tabela informuese", "duration": { "base": 4, "per100m2": 0.3, "max": 10 }, "after": ["njoftimi"], "crew": "Kontraktori" },
+      { "id": "shenjimi", "scope": "common", "name": "Shënjimi gjeodezik i objektit dhe boshteve", "duration": 2, "after": [{ "id": "kantieri", "type": "SS", "lag": 2 }], "crew": "Gjeodeti" }
     ]},
     { "name": "2. Punimet e dheut dhe themelet", "tasks": [
-      { "id": "germimi_b", "name": "Gërmimi i dheut për bodrum dhe largimi i dheut", "when": "basement", "duration": { "base": 4, "per100m2": 1.0, "perBasement": 3 }, "after": ["shenjimi"], "weather": true, "crew": "Makineri" },
-      { "id": "germimi_t", "name": "Gërmimi për themele", "when": "noBasement", "duration": { "base": 2, "per100m2": 0.5 }, "after": ["shenjimi"], "weather": true, "crew": "Makineri" },
-      { "id": "tamponi", "name": "Tampon zhavorri dhe beton i dobët", "duration": { "base": 2, "per100m2": 0.5 }, "after": ["germimi_b", "germimi_t"], "weather": true },
-      { "id": "hid_them", "name": "Hidroizolimi i themeleve", "duration": { "base": 2, "per100m2": 0.3 }, "after": ["tamponi"], "weather": true },
-      { "id": "themelet", "name": "Armimi dhe betonimi i themeleve", "duration": { "base": 6, "per100m2": 1.0 }, "after": ["hid_them"], "weather": true, "crew": "Betonierë, armatues" },
-      { "id": "muret_b", "name": "Muret dhe pllaka e bodrumit (b/a)", "when": "basement", "duration": { "base": 4, "perBasement": 12, "per100m2": 1.0 }, "after": ["themelet"], "weather": true },
-      { "id": "hid_bodrum", "name": "Hidroizolimi, XPS dhe drenazha e mureve të bodrumit, mbushja", "when": "basement", "duration": { "base": 4, "per100m2": 0.5 }, "after": ["muret_b"], "weather": true },
-      { "id": "insp_themele", "name": "Inspektimi i fazës: themelet", "duration": 0, "after": ["themelet"], "notes": "Kërkesë për inspektim sipas UA (MMPH) Nr. 05/2017" }
+      { "id": "germimi_b", "scope": "foundation", "name": "Gërmimi i dheut për bodrum dhe largimi i dheut", "when": "basement", "duration": { "base": 4, "per100m2": 1.0, "perBasement": 3 }, "after": ["shenjimi"], "weather": true, "crew": "Makineri" },
+      { "id": "germimi_t", "scope": "foundation", "name": "Gërmimi për themele", "when": "noBasement", "duration": { "base": 2, "per100m2": 0.5 }, "after": ["shenjimi"], "weather": true, "crew": "Makineri" },
+      { "id": "tamponi", "scope": "foundation", "name": "Tampon zhavorri dhe beton i dobët", "duration": { "base": 2, "per100m2": 0.5 }, "after": ["germimi_b", "germimi_t"], "weather": true },
+      { "id": "hid_them", "scope": "foundation", "name": "Hidroizolimi i themeleve", "duration": { "base": 2, "per100m2": 0.3 }, "after": ["tamponi"], "weather": true },
+      { "id": "themelet", "scope": "foundation", "name": "Armimi dhe betonimi i themeleve", "duration": { "base": 6, "per100m2": 1.0 }, "after": ["hid_them"], "weather": true, "crew": "Betonierë, armatues" },
+      { "id": "muret_b", "scope": "foundation", "name": "Muret dhe pllaka e bodrumit (b/a)", "when": "basement", "duration": { "base": 4, "perBasement": 12, "per100m2": 1.0 }, "after": ["themelet"], "weather": true },
+      { "id": "hid_bodrum", "scope": "foundation", "name": "Hidroizolimi, XPS dhe drenazha e mureve të bodrumit, mbushja", "when": "basement", "duration": { "base": 4, "per100m2": 0.5 }, "after": ["muret_b"], "weather": true },
+      { "id": "insp_themele", "scope": "foundation", "name": "Inspektimi i fazës: themelet", "duration": 0, "after": ["themelet"], "notes": "Kërkesë për inspektim sipas UA (MMPH) Nr. 05/2017" }
     ]},
     { "name": "3. Konstruksioni dhe kulmi", "tasks": [
       { "id": "konstr", "name": "Konstruksioni b/a i kateve (kolona, mure, trarë, pllaka)", "duration": { "base": 0, "perFloor": 14, "per100m2": 1.5 }, "after": ["insp_themele", "muret_b"], "weather": true, "crew": "Betonierë, armatues, kallëpxhinj" },
@@ -49,12 +51,12 @@
       { "id": "dyshemete", "name": "Dyshemetë (parket / laminat)", "duration": { "base": 1, "perFloor": 3, "per100m2": 0.8 }, "after": [{ "id": "estrihi", "type": "FS", "lag": 25 }, "lyerja"], "notes": "Pritet tharja e estrihit (lagështia sipas prodhuesit)" },
       { "id": "dyert_b", "name": "Dyert e brendshme", "duration": { "base": 2, "perFloor": 1 }, "after": ["dyshemete"] },
       { "id": "montimi", "name": "Montimi i elementeve sanitare, ndriçimit dhe pajisjeve", "duration": { "base": 3, "perFloor": 2 }, "after": ["lyerja", "pllakat"] },
-      { "id": "jashte", "name": "Rregullimi i jashtëm (shtigje, parkingu, gjelbërimi, rrethoja)", "duration": { "base": 6, "per100m2": 1.0 }, "after": [{ "id": "fasada", "type": "FS", "lag": 0 }], "weather": true },
-      { "id": "pastrimi", "name": "Pastrimi përfundimtar dhe largimi i kantierit", "duration": 3, "after": ["dyert_b", "montimi", "jashte", "llamarinat"] }
+      { "id": "jashte", "scope": "common", "name": "Rregullimi i jashtëm (shtigje, parkingu, gjelbërimi, rrethoja)", "duration": { "base": 6, "per100m2": 1.0 }, "after": [{ "id": "fasada", "type": "FS", "lag": 0 }], "weather": true },
+      { "id": "pastrimi", "scope": "common", "name": "Pastrimi përfundimtar dhe largimi i kantierit", "duration": 3, "after": ["dyert_b", "montimi", "jashte", "llamarinat"] }
     ]},
     { "name": "7. Pranimi teknik", "tasks": [
-      { "id": "insp_final", "name": "Inspektimi përfundimtar", "duration": 0, "after": ["pastrimi"], "notes": "UA (MMPH) Nr. 05/2017" },
-      { "id": "certifikata", "name": "Kërkesa për certifikatën e përdorimit", "duration": 0, "after": ["insp_final"] }
+      { "id": "insp_final", "scope": "common", "name": "Inspektimi përfundimtar", "duration": 0, "after": ["pastrimi"], "notes": "UA (MMPH) Nr. 05/2017" },
+      { "id": "certifikata", "scope": "common", "name": "Kërkesa për certifikatën e përdorimit", "duration": 0, "after": ["insp_final"] }
     ]}
   ]
 }

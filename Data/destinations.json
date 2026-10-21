@@ -1,0 +1,39 @@
+// ARBS Studio - Kategoria e ndërtimit dhe destinimi i objektit
+// Emërtimet sipas praktikës së kushteve ndërtimore komunale dhe bazës ligjore në fuqi:
+// Ligji Nr. 04/L-110 për Ndërtim (me ndryshimet), Ligji Nr. 04/L-174 për Planifikim Hapësinor,
+// UA MMPH Nr. 08/2017 për normat teknike të planifikimit hapësinor, UA MMPHI Nr. 07/2024 për njësitë kadastrale.
+// Lista mund të plotësohet nga zyra. "multi": true = projekt me blloqe/hyrje dhe njësi (specifikimi i njësive,
+// paramasa dhe plani dinamik sipas blloqeve me rekapitulim).
+{
+  "version": 1,
+  "source": "Ligji Nr. 04/L-110 për Ndërtim; Ligji Nr. 04/L-174 për Planifikim Hapësinor; UA MMPH Nr. 08/2017; UA MMPHI Nr. 07/2024",
+  "categories": [
+    { "code": "I",   "name": "Kategoria I" },
+    { "code": "II",  "name": "Kategoria II" },
+    { "code": "III", "name": "Kategoria III" }
+  ],
+  "destinations": [
+    { "code": "BI", "name": "Objekt banimi individual", "multi": false,
+      "subs": ["Shtëpi banimi individuale", "Shtëpi në varg / dyshe", "Vilë", "Shtëpi banimi me lokal afarist në përdhesë"] },
+    { "code": "BK", "name": "Objekt banimi kolektiv (shumëbanesor)", "multi": true,
+      "subs": ["Ndërtesë banimi me një hyrje", "Ndërtesë banimi me disa hyrje", "Kompleks banimi me disa blloqe", "Banim social / i përballueshëm"] },
+    { "code": "BKA", "name": "Objekt banimi kolektiv me afarizëm (mikst)", "multi": true,
+      "subs": ["Banim me lokale afariste në përdhesë", "Banim me afarizëm në përdhesë dhe kat të parë", "Kompleks mikst me disa blloqe", "Banim me zyra"] },
+    { "code": "AF", "name": "Objekt afarist", "multi": true,
+      "subs": ["Zyra / administratë private", "Tregti / qendër tregtare", "Hotel / turizëm", "Hoteleri (restorant, kafene)", "Shërbime", "Afarizëm me disa blloqe"] },
+    { "code": "PUB", "name": "Objekt publik", "multi": false,
+      "subs": ["Arsim (shkollë, kopsht, universitet)", "Shëndetësi", "Administratë publike", "Kulturë", "Sport dhe rekreacion", "Objekt fetar", "Siguri / emergjencë"] },
+    { "code": "IND", "name": "Objekt industrial / depo", "multi": false,
+      "subs": ["Prodhim / punëtori", "Depo / magazinë", "Objekt logjistik", "Ekonomi zejtare"] },
+    { "code": "BUJ", "name": "Objekt bujqësor", "multi": false,
+      "subs": ["Stallë / ferma", "Depo bujqësore", "Serrë", "Përpunim i produkteve bujqësore"] },
+    { "code": "INF", "name": "Infrastrukturë / objekt teknik", "multi": false,
+      "subs": ["Objekt teknik / trafostacion", "Parking / garazh kolektiv", "Infrastrukturë rrugore", "Tjetër"] }
+  ],
+  "unitKinds": [
+    { "code": "banesa", "name": "Banesë" }, { "code": "lokal", "name": "Lokal afarist" }, { "code": "zyre", "name": "Zyrë" },
+    { "code": "garazh", "name": "Garazh" }, { "code": "parking", "name": "Vendparkim" }, { "code": "depo", "name": "Depo" }
+  ],
+  "roomSuggestions": ["Hyrja", "Qëndrimi ditor", "Tryezari", "Kuzhina", "Dhoma e gjumit", "Dhoma e prindërve", "Dhoma e fëmijëve",
+    "Banjo", "Tualet", "Depo", "Korridori", "Garderoba", "Ballkon", "Lozhë", "Terasë"]
+}

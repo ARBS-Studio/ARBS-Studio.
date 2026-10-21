@@ -14,10 +14,12 @@
 #include "Core/KosovoCalendar.hpp"
 #include "Core/Reports.hpp"
 #include "Core/Solar.hpp"
+#include "Core/Structure.hpp"
 
 #include <exception>
 #include <functional>
 #include <map>
+#include <set>
 
 #ifndef ADDON_VERSION
 #define ADDON_VERSION "0.1.0"
@@ -56,6 +58,16 @@ Json::Value ProjectForReports ()
 		for (const Json::Value& ph : GetCatalog ().Phases ()["phases"].AsArray ())
 			if (ph.GetString ("name") == f || ph.GetString ("code") == f) phase = ph.GetString ("code");
 		if (!phase.empty ()) p.Set ("faza_kodi", phase);
+	}
+	// destinimi sipas listes ligjore
+	if (const Json::Value* d = GetCatalog ().FindDestination (p.GetString ("destinimi_kodi"))) {
+		p.Set ("destinimi_emri", d->GetString ("name"));
+		if (p.GetString ("destinimi").empty ()) {
+			std::string t = d->GetString ("name");
+			if (!p.GetString ("nen_destinimi").empty ()) t += " \xE2\x80\x93 " + p.GetString ("nen_destinimi");
+			if (!p.GetString ("katet").empty ()) t += " " + p.GetString ("katet");
+			p.Set ("destinimi", t);
+		}
 	}
 	return p;
 }
@@ -101,6 +113,7 @@ Json::Value CatalogForUi ()
 	c.Set ("projectFields", cat.Documents ()["projectFields"]);
 	c.Set ("law", cat.Holidays ().GetString ("law"));
 	c.Set ("prices", BillOfQuantities::PriceList (cat));
+	c.Set ("destinations", cat.Destinations ());
 	return c;
 }
 
@@ -308,13 +321,21 @@ Json::Value CmdBillOfQuantities (const Json::Value& req)
 	const Json::Value project = ProjectForReports ();
 	const Json::Value model = ModelReader::Read (false);
 	const BoqOptions opt = BoqOptionsFrom (req);
-	if (!req.GetBool ("export", true)) {
-		Json::Value r = Ok ();
-		r.Set ("boq", BillOfQuantities::ToJson (BillOfQuantities::Compute (GetCatalog (), model, project, opt)));
-		return r;
+	const auto parts = BillOfQuantities::ComputeParts (GetCatalog (), model, project, opt);
+	const Json::Value pj = BillOfQuantities::PartsToJson (parts, model);
+	Json::Value r = req.GetBool ("export", true)
+		? SaveAndOpen (project, Reports::QuantitiesAndCost (GetCatalog (), project, ProjectStore::OfficeForReports (), model, opt), true)
+		: Ok ();
+	if (!r.GetBool ("ok")) return r;
+	// "boq" = totali (per projekt me nje objekt = rezultati i plote), "parts" = sipas blloqeve
+	if (!pj.GetBool ("multi")) r.Set ("boq", pj["parts"][0]);
+	else {
+		Json::Value tot = pj["total"];
+		tot.Set ("groups", Json::Value::MakeArray ());
+		tot.Set ("notes", Json::Value::MakeArray ());
+		r.Set ("boq", tot);
+		r.Set ("parts", pj["parts"]);
 	}
-	Json::Value r = SaveAndOpen (project, Reports::QuantitiesAndCost (GetCatalog (), project, ProjectStore::OfficeForReports (), model, opt), true);
-	if (r.GetBool ("ok")) r.Set ("boq", BillOfQuantities::ToJson (BillOfQuantities::Compute (GetCatalog (), model, project, opt)));
 	return r;
 }
 
@@ -328,6 +349,49 @@ Json::Value CmdSavePrices (const Json::Value& req)
 	if (!ProjectStore::SaveOffice (office)) return Fail ("\xC3\x87mimet e zyr\xC3\xABs nuk u ruajt\xC3\xABn.");
 	Json::Value r = Ok ();
 	r.Set ("count", static_cast<int> (prices.AsObject ().size ()));
+	return r;
+}
+
+Json::Value CmdUnits (const Json::Value& req)
+{
+	const Json::Value project = ProjectForReports ();
+	const Json::Value model = ModelReader::Read (false);
+	const Json::Value units = Structure::Units (model, Structure::OptionsFromProject (project), project["njesite_manual"]);
+	Json::Value r = req.GetBool ("export", true)
+		? SaveAndOpen (project, Reports::UnitSchedule (project, ProjectStore::OfficeForReports (), model), true)
+		: Ok ();
+	if (!r.GetBool ("ok")) return r;
+	r.Set ("units", units["units"]);
+	r.Set ("source", units["source"]);
+	return r;
+}
+
+// blloqet, hyrjet dhe zonat e njesive te gjetura ne model (per paleten)
+Json::Value CmdStructureInfo (const Json::Value&)
+{
+	const Json::Value model = ModelReader::Read (false);
+	const Json::Value project = ProjectStore::LoadProject ();
+	Json::Value r = Ok ();
+	Json::Value blocks = Json::Value::MakeArray ();
+	const auto parts = Structure::SplitModel (model, Structure::OptionsFromProject (project));
+	for (const auto& p : parts) {
+		if (p.first.empty ()) continue;
+		Json::Value b = Json::Value::MakeObject ();
+		b.Set ("code", p.first);
+		b.Set ("name", Structure::BlockName (model, p.first));
+		double net = 0.0;
+		for (const Json::Value& z : p.second["zones"].AsArray ()) net += z.GetNumber ("area");
+		b.Set ("net", net);
+		double foot = 0.0;
+		for (const Json::Value& bl : p.second["blocks"].AsArray ()) foot += bl.GetNumber ("area");
+		b.Set ("area", foot);
+		b.Set ("stories", static_cast<int> (p.second["stories"].Size ()));
+		blocks.Push (b);
+	}
+	r.Set ("blocks", blocks);
+	r.Set ("entrances", static_cast<int> (model["entrances"].Size ()));
+	r.Set ("unitZones", static_cast<int> (model["unitZones"].Size ()));
+	r.Set ("rooms", static_cast<int> (model["zones"].Size ()));
 	return r;
 }
 
@@ -358,9 +422,45 @@ Json::Value CmdDynamicPlan (const Json::Value& req)
 	cal.LoadRules (cat.Holidays ());
 	DynamicPlan::ConfigureCalendar (cal, p);
 
-	std::vector<PlanTask> tasks = (req["tasks"].IsArray () && req["tasks"].Size () > 0)
-		? DynamicPlan::FromJson (req["tasks"])
-		: DynamicPlan::FromTemplate (cat.PlanTemplate (), p);
+	const bool custom = req["tasks"].IsArray () && req["tasks"].Size () > 0;
+	std::vector<PlanTask> tasks;
+	std::vector<PlanBlock> blocks;
+	PlanParameters pp = p;
+	if (!custom && req.GetBool ("byBlocks", true)) {
+		// kompleks me blloqe: blloqet nga zonat "Blloku ..." te modelit
+		const Json::Value model = ModelReader::Read (false);
+		const Json::Value project = ProjectStore::LoadProject ();
+		const StructureOptions so = Structure::OptionsFromProject (project);
+		if (Structure::HasBlocks (model)) {
+			int below = 0;
+			for (const Json::Value& s : model["stories"].AsArray ()) if (s.GetInt ("index") < 0) ++below;
+			double common = 0.0, foot = 0.0;
+			for (const auto& part : Structure::SplitModel (model, so)) {
+				double net = 0.0;
+				std::set<int> st;
+				for (const Json::Value& z : part.second["zones"].AsArray ()) { net += z.GetNumber ("area"); st.insert (z.GetInt ("story")); }
+				if (part.first == Structure::CommonPart ()) { common = net * 1.10; continue; }
+				PlanBlock b;
+				b.code = part.first;
+				b.name = Structure::BlockName (model, part.first);
+				const Json::Value& given = project["blloqet_bts"][part.first];
+				b.grossArea = given.IsNumber () && given.AsNumber () > 0 ? given.AsNumber () : std::max (50.0, net * 1.20);
+				int above = 0;
+				for (int x : st) if (x >= 0) ++above;
+				b.floorsAbove = std::max (1, above);
+				b.floorsBelow = below;
+				for (const Json::Value& bl : part.second["blocks"].AsArray ()) foot += bl.GetNumber ("area");
+				blocks.push_back (b);
+			}
+			pp.floorsBelow = below;
+			pp.grossArea = std::max (common, foot);
+			if (pp.grossArea <= 0.0) pp.grossArea = p.grossArea;
+		}
+	}
+	const int offset = req.GetInt ("offset", 20);
+	if (custom) tasks = DynamicPlan::FromJson (req["tasks"]);
+	else if (!blocks.empty ()) tasks = DynamicPlan::FromTemplateMulti (cat.PlanTemplate (), pp, blocks, Structure::OptionsFromProject (ProjectStore::LoadProject ()).sharedBasement, offset);
+	else tasks = DynamicPlan::FromTemplate (cat.PlanTemplate (), p);
 	const std::string err = DynamicPlan::Schedule (tasks, cal, p.start);
 	if (!err.empty ()) return Fail (err);
 
@@ -372,7 +472,16 @@ Json::Value CmdDynamicPlan (const Json::Value& req)
 	Json::Value r = Ok ();
 	if (req.GetBool ("export", true)) {
 		const Json::Value project = ProjectForReports ();
-		r = SaveAndOpen (project, Reports::DynamicPlanReport (project, ProjectStore::OfficeForReports (), tasks, cal, p), req.GetBool ("open", true));
+		std::vector<ReportOutput> outs = Reports::DynamicPlanReport (project, ProjectStore::OfficeForReports (), tasks, cal, p);
+		// plani i vecante per cdo bllok
+		for (const PlanBlock& b : blocks) {
+			std::vector<PlanTask> sub;
+			for (const PlanTask& t : tasks) if (DynamicPlan::BlockOf (t) == b.code) sub.push_back (t);
+			if (sub.empty ()) continue;
+			for (const ReportOutput& o : Reports::DynamicPlanReport (project, ProjectStore::OfficeForReports (), sub, cal, p, "-" + Html::Slug (b.code), b.name))
+				outs.push_back (o);
+		}
+		r = SaveAndOpen (project, outs, req.GetBool ("open", true));
 	}
 	const Date finish = DynamicPlan::ProjectFinish (tasks);
 	r.Set ("tasks", DynamicPlan::ToJson (tasks));
@@ -381,6 +490,26 @@ Json::Value CmdDynamicPlan (const Json::Value& req)
 	r.Set ("workingDays", cal.CountWorkingDays (p.start, finish));
 	r.Set ("calendarDays", static_cast<int> (finish.ToDays () - p.start.ToDays () + 1));
 	r.Set ("holidays", HolidaysJson (cal, p.start, finish));
+	Json::Value bl = Json::Value::MakeArray ();
+	for (const PlanBlock& b : blocks) {
+		Date a, z;
+		bool any = false;
+		for (const PlanTask& t : tasks) {
+			if (DynamicPlan::BlockOf (t) != b.code) continue;
+			if (!any || t.es < a) a = t.es;
+			if (!any || z < t.ef) z = t.ef;
+			any = true;
+		}
+		if (!any) continue;
+		Json::Value o = Json::Value::MakeObject ();
+		o.Set ("code", b.code);
+		o.Set ("name", b.name);
+		o.Set ("start", a.ToIso ());
+		o.Set ("finish", z.ToIso ());
+		o.Set ("workingDays", cal.CountWorkingDays (a, z));
+		bl.Push (o);
+	}
+	r.Set ("blocks", bl);
 	return r;
 }
 
@@ -435,6 +564,8 @@ std::string Commands::Handle (const std::string& request)
 		{ "buildingPhysics", CmdBuildingPhysics },
 		{ "billOfQuantities", CmdBillOfQuantities },
 		{ "savePrices", CmdSavePrices },
+		{ "units", CmdUnits },
+		{ "structureInfo", CmdStructureInfo },
 		{ "modelSummary", CmdModelSummary },
 		{ "dynamicPlan", CmdDynamicPlan },
 		{ "holidays", CmdHolidays },

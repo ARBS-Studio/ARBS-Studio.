@@ -10,6 +10,9 @@
 #include "Core/KosovoCalendar.hpp"
 #include "Core/Reports.hpp"
 #include "Core/Solar.hpp"
+#include "Core/Structure.hpp"
+
+#include "ComplexModel.hpp"
 
 #include <cmath>
 #include <cstdio>
@@ -249,6 +252,116 @@ static void TestBoq (const Catalog& cat)
 	std::printf ("  punimet %s EUR, gjithsej me TVSH %s EUR\n", BillOfQuantities::Money (r.works).c_str (), BillOfQuantities::Money (r.total).c_str ());
 }
 
+static void TestStructure (const Catalog& cat)
+{
+	std::printf ("Struktura: blloqet, hyrjet, njesite\n");
+	const std::vector<Pt> sq = { { 0, 0 }, { 10, 0 }, { 10, 10 }, { 0, 10 } };
+	CHECK (Geo::PointInPolygon (sq, 5, 5));
+	CHECK (!Geo::PointInPolygon (sq, 15, 5));
+	CHECK_NEAR (Geo::Area (sq), 100.0, 1e-9);
+	CHECK (Structure::ZoneRole (u8"Hyrja", "") == "room");			// hyrja e nje banese mbetet dhome
+	CHECK (Structure::ZoneRole ("Hyrja H1", "") == "entrance");
+	CHECK (Structure::ZoneRole ("Blloku B1", "") == "block");
+	CHECK (Structure::ZoneRole ("Banesa", "") == "unit");
+	CHECK (Structure::ZoneRole ("X", u8"ARBS Nj\u00ebsia") == "unit");
+	CHECK (Structure::ZoneRole (u8"Dhoma e gjumit", "") == "room");
+	CHECK (Structure::IsBedroom (u8"Dhoma e f\u00ebmij\u00ebve"));
+	CHECK (!Structure::IsBedroom ("Dhoma e ndenjes"));
+	CHECK (Structure::OuterKind (u8"Lozh\u00eb") == "lozhe");
+	const std::vector<int> fl = Structure::ParseFloors ("1-3, 5");
+	CHECK (fl.size () == 4 && fl[0] == 1 && fl[3] == 5);
+	const std::vector<int> fp = Structure::ParseFloors ("P,1");
+	CHECK (fp.size () == 2 && fp[0] == 0);
+
+	const Json::Value model = Json::Value::Parse (kComplexModel);
+	Json::Value project = Json::Value::Parse (R"({"nr": "2026-030", "faza_kodi": "PKR", "koef_ballkon": 0.5})");
+	const StructureOptions so = Structure::OptionsFromProject (project);
+	CHECK (so.sharedBasement && so.coefficientsSet);
+	const auto parts = Structure::SplitModel (model, so);
+	CHECK (parts.size () == 3);
+	if (parts.size () == 3) {
+		CHECK (parts[0].first == "B1" && parts[1].first == "B2" && parts[2].first == "PB");
+		CHECK (parts[2].second["zones"].Size () == 1);	// garazha
+		CHECK (parts[0].second["openings"].Size () == 15);
+	}
+	const Json::Value units = Structure::Units (model, so)["units"];
+	CHECK (units.Size () == 10);
+	int flats = 0;
+	for (const Json::Value& u : units.AsArray ()) {
+		if (u.GetString ("kind") != "banesa") continue;
+		++flats;
+		CHECK (u.GetString ("structure") == "2+1");
+		CHECK_NEAR (u.GetNumber ("net"), 65.0 + 3.0, 1e-9);
+		CHECK_NEAR (u.GetNumber ("commonShare"), 36.0 * 68.0 / (180.0 + 4 * 68.0), 0.01);
+	}
+	CHECK (flats == 8);
+
+	Json::Value manual = Json::Value::Parse (u8R"({"types": [{"code": "A", "kind": "banesa", "name": "Banesa tip A",
+		"rooms": [{"name": "Q\u00ebndrimi ditor", "area": 24}, {"name": "Kuzhina", "area": 9}, {"name": "Dhoma e gjumit", "area": 14}, {"name": "Banjo", "area": 5}, {"name": "Tualet", "area": 2}, {"name": "Depo", "area": 2}, {"name": "Ballkon", "area": 6}]}],
+		"placements": [{"type": "A", "block": "B1", "entrance": "H1", "floors": "1-7", "perFloor": 4}], "common": {"B1": 140}})");
+	const Json::Value mu = Structure::Units (Json::Value::Parse ("{}"), so, manual);
+	CHECK (mu.GetString ("source") == "manual");
+	CHECK (mu["units"].Size () == 28);
+	if (mu["units"].Size () == 28) {
+		CHECK (mu["units"][27].GetString ("number") == "B1-H1-28");
+		CHECK (mu["units"][0].GetString ("structure") == "1+1");
+		CHECK_NEAR (mu["units"][0].GetNumber ("net"), 56.0 + 3.0, 1e-9);
+		CHECK_NEAR (mu["units"][0].GetNumber ("commonShare"), 5.0, 1e-6);
+	}
+
+	// paramasa sipas blloqeve
+	BoqOptions opt;
+	const auto bp = BillOfQuantities::ComputeParts (cat, model, project, opt);
+	CHECK (bp.size () == 3);
+	double sum = 0.0;
+	for (const auto& p : bp) sum += p.second.total;
+	const Json::Value pj = BillOfQuantities::PartsToJson (bp, model);
+	CHECK (pj.GetBool ("multi"));
+	CHECK_NEAR (pj["total"].GetNumber ("total"), sum, 0.05);
+	if (bp.size () == 3) {
+		CHECK (bp[0].second.quantities.at ("EXC:v") == 0.0);		// germimi eshte te pjesa e perbashket
+		CHECK (bp[2].second.quantities.at ("EXC:v") > 0.0);
+	}
+	const auto outs = Reports::QuantitiesAndCost (cat, project, Json::Value::MakeObject (), model, opt);
+	CHECK (outs.size () == 7);
+	CHECK (outs[0].content.find ("Rekapitulimi i projektit sipas blloqeve") != std::string::npos);
+	CHECK (outs[0].content.find ("Kostoja sipas nj") != std::string::npos);
+	const auto us = Reports::UnitSchedule (project, Json::Value::MakeObject (), model);
+	CHECK (us.size () == 3 && us[0].content.find ("B1-H1-4") != std::string::npos);
+	CHECK (!Reports::BlocksChapter (project, model).empty ());
+
+	// plani dinamik sipas blloqeve
+	PlanParameters p;
+	p.start = Date (2027, 3, 1);
+	p.grossArea = 1000.0;
+	p.floorsAbove = 3;
+	p.floorsBelow = 1;
+	KosovoCalendar cal;
+	cal.LoadRules (cat.Holidays ());
+	DynamicPlan::ConfigureCalendar (cal, p);
+	std::vector<PlanBlock> blocks = { { "B1", "Blloku B1", 900.0, 3, 0 }, { "B2", "Blloku B2", 900.0, 3, 0 } };
+	std::vector<PlanTask> tasks = DynamicPlan::FromTemplateMulti (cat.PlanTemplate (), p, blocks, true, 20);
+	CHECK (DynamicPlan::Schedule (tasks, cal, p.start).empty ());
+	const PlanTask* k1 = nullptr; const PlanTask* k2 = nullptr; const PlanTask* fin = nullptr; const PlanTask* f1 = nullptr; const PlanTask* f2 = nullptr;
+	int germ = 0;
+	for (const PlanTask& t : tasks) {
+		if (t.id == "B1:konstr") k1 = &t;
+		if (t.id == "B2:konstr") k2 = &t;
+		if (t.id == "pastrimi") fin = &t;
+		if (t.id == "B1:dyert_b") f1 = &t;
+		if (t.id == "B2:dyert_b") f2 = &t;
+		if (t.id.find ("germimi") != std::string::npos) ++germ;
+	}
+	CHECK (k1 && k2 && fin && f1 && f2);
+	CHECK (germ == 1);		// germimi i perbashket nje here
+	if (k1 && k2) CHECK (cal.CountWorkingDays (k1->es, k2->es) >= 20);
+	if (fin && f1 && f2) CHECK (f1->ef < fin->es && f2->ef < fin->es);
+	const auto plan = Reports::DynamicPlanReport (project, Json::Value::MakeObject (), tasks, cal, p);
+	CHECK (plan[0].content.find ("Rekapitulimi sipas blloqeve") != std::string::npos);
+	std::printf ("  pjeset %zu, njesite %u, paramasa gjithsej %s EUR, plani %s - %s\n", bp.size (), static_cast<unsigned> (units.Size ()),
+				 BillOfQuantities::Money (sum).c_str (), tasks.front ().es.ToAlb ().c_str (), DynamicPlan::ProjectFinish (tasks).ToAlb ().c_str ());
+}
+
 int main (int argc, char** argv)
 {
 	const std::string dataDir = argc > 1 ? argv[1] : "Data";
@@ -266,6 +379,7 @@ int main (int argc, char** argv)
 	TestPhysics (cat);
 	TestSolar (cat);
 	TestBoq (cat);
+	TestStructure (cat);
 	std::printf ("\n%d kontrolle, %d deshtime\n", checks, failures);
 	return failures == 0 ? 0 : 1;
 }

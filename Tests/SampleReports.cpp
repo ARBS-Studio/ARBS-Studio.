@@ -5,6 +5,9 @@
 #include "Core/Catalog.hpp"
 #include "Core/DynamicPlan.hpp"
 #include "Core/Reports.hpp"
+#include "Core/Structure.hpp"
+
+#include "ComplexModel.hpp"
 
 #include <cstdio>
 #include <fstream>
@@ -113,5 +116,29 @@ int main (int argc, char** argv)
 	const std::string e = DynamicPlan::Schedule (tasks, cal, p.start);
 	if (!e.empty ()) std::printf ("%s\n", e.c_str ());
 	for (const ReportOutput& r : Reports::DynamicPlanReport (project, office, tasks, cal, p)) Save (outDir, r);
+
+	// --- kompleks banimi me dy blloqe dhe garazh te perbashket
+	std::printf ("Kompleksi:\n");
+	const Json::Value cm = Json::Value::Parse (kComplexModel);
+	Json::Value cp = Json::Value::Parse (R"ARBS({
+		"emri": "Kompleksi i banimit Arbëria", "nr": "2026-030", "investitori": "Investitori Sh.p.k.", "kategoria": "II",
+		"destinimi_kodi": "BKA", "destinimi_emri": "Objekt banimi kolektiv me afarizëm (mikst)", "nen_destinimi": "Kompleks mikst me disa blloqe",
+		"destinimi": "Kompleks banimi me afarizëm, 2 blloqe B+P+2", "faza": "Projekti Kryesor", "faza_kodi": "PKR", "komuna": "Prishtinë",
+		"katet": "B+P+2", "koef_ballkon": 0.5, "data": "21.10.2026" })ARBS");
+	for (const ReportOutput& r : Reports::QuantitiesAndCost (cat, cp, office, cm, BoqOptions ())) Save (outDir, r);
+	for (const ReportOutput& r : Reports::UnitSchedule (cp, office, cm)) Save (outDir, r);
+	Save (outDir, Reports::TechnicalDescription (cat, cp, office, cm));
+	PlanParameters mp;
+	mp.start = Date (2027, 3, 1);
+	mp.grossArea = 990.0;
+	mp.floorsAbove = 3;
+	mp.floorsBelow = 1;
+	KosovoCalendar mcal;
+	mcal.LoadRules (cat.Holidays ());
+	DynamicPlan::ConfigureCalendar (mcal, mp);
+	std::vector<PlanTask> mt = DynamicPlan::FromTemplateMulti (cat.PlanTemplate (), mp, { { "B1", "Blloku B1", 880.0, 3, 0 }, { "B2", "Blloku B2", 880.0, 3, 0 } }, true, 20);
+	const std::string me = DynamicPlan::Schedule (mt, mcal, mp.start);
+	if (!me.empty ()) std::printf ("%s\n", me.c_str ());
+	for (const ReportOutput& r : Reports::DynamicPlanReport (cp, office, mt, mcal, mp)) Save (outDir, r);
 	return 0;
 }

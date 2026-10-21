@@ -4,6 +4,7 @@
 #include "AC/ModelReader.hpp"
 
 #include "AC/CompositeBuilder.hpp"
+#include "Core/Structure.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -66,6 +67,55 @@ static GS::Array<API_Guid> Elements (API_ElemTypeID type, bool selectionOnly, co
 	return filtered;
 }
 
+// qendra e elementit ne plan (per caktimin ne bllok)
+static bool Center (const API_Elem_Head& head, double* x, double* y)
+{
+	API_Box3D box {};
+	if (ACAPI_Element_CalcBounds (&head, &box) != NoError) return false;
+	*x = (box.xMin + box.xMax) / 2.0;
+	*y = (box.yMin + box.yMax) / 2.0;
+	return true;
+}
+
+// konturi i jashtem i poligonit te zones
+static Json::Value ZonePolygon (const API_Guid& guid)
+{
+	std::vector<Pt> poly;
+	API_ElementMemo memo {};
+	if (ACAPI_Element_GetMemo (guid, &memo, APIMemoMask_Polygon) == NoError && memo.coords != nullptr) {
+		const Int32 nCoords = static_cast<Int32> (BMGetHandleSize (reinterpret_cast<GSHandle> (memo.coords)) / static_cast<GSSize> (sizeof (API_Coord))) - 1;
+		Int32 last = nCoords;
+		if (memo.pends != nullptr && BMGetHandleSize (reinterpret_cast<GSHandle> (memo.pends)) >= static_cast<GSSize> (2 * sizeof (Int32)))
+			last = std::min (last, (*memo.pends)[1]);
+		for (Int32 i = 1; i <= last; ++i) poly.push_back ({ (*memo.coords)[i].x, (*memo.coords)[i].y });
+	}
+	ACAPI_DisposeElemMemoHdls (&memo);
+	return Geo::ToJson (poly);
+}
+
+static std::string ZoneCategoryName (const API_AttributeIndex& idx, std::map<Int32, std::string>& cache)
+{
+	const Int32 key = idx.ToInt32_Deprecated ();
+	auto it = cache.find (key);
+	if (it != cache.end ()) return it->second;
+	API_Attribute a {};
+	GS::UniString n;
+	a.header.typeID = API_ZoneCatID;
+	a.header.index = idx;
+	a.header.uniStringNamePtr = &n;
+	const std::string name = (ACAPI_Attribute_Get (&a) == NoError) ? ToUtf8 (n) : std::string ();
+	cache[key] = name;
+	return name;
+}
+
+// kodi i bllokut/hyrjes: numri i zones, ose pjesa e emrit pas fjales kyce ("Blloku B1" -> "B1")
+static std::string ZoneCode (const std::string& number, const std::string& name)
+{
+	if (!number.empty ()) return number;
+	const size_t sp = name.find (' ');
+	return sp == std::string::npos ? name : name.substr (sp + 1);
+}
+
 static std::map<Int32, std::string> CompositeNames ()
 {
 	std::map<Int32, std::string> names;
@@ -98,8 +148,12 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		for (const API_Neig& n : neigs) selection.insert (n.guid);
 	}
 
-	// --- zonat
+	// --- zonat: dhomat, blloqet, hyrjet dhe njesite (sipas kategorise ose emrit)
 	Json::Value zones = Json::Value::MakeArray ();
+	Json::Value blocks = Json::Value::MakeArray ();
+	Json::Value entrances = Json::Value::MakeArray ();
+	Json::Value unitZones = Json::Value::MakeArray ();
+	std::map<Int32, std::string> catCache;
 	for (const API_Guid& g : Elements (API_ZoneID, false, selection)) {
 		API_Element el {};
 		el.header.guid = g;
@@ -111,14 +165,26 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		ACAPI_ELEMENT_QUANTITY_MASK_SETFULL (mask);
 		double area = 0.0;
 		if (ACAPI_Element_GetQuantities (g, nullptr, &quantities, &mask) == NoError) area = q.zone.area;
+		const std::string number = ToUtf8 (el.zone.roomNoStr);
+		const std::string name = ToUtf8 (el.zone.roomName);
+		const std::string role = Structure::ZoneRole (name, ZoneCategoryName (el.zone.catInd, catCache));
 		Json::Value z = Json::Value::MakeObject ();
 		z.Set ("story", static_cast<int> (el.header.floorInd));
-		z.Set ("number", ToUtf8 (el.zone.roomNoStr));
-		z.Set ("name", ToUtf8 (el.zone.roomName));
+		z.Set ("number", number);
+		z.Set ("name", name);
 		z.Set ("area", std::round (area * 100.0) / 100.0);
-		zones.Push (z);
+		z.Set ("x", el.zone.pos.x);
+		z.Set ("y", el.zone.pos.y);
+		if (role == "room") { zones.Push (z); continue; }
+		z.Set ("poly", ZonePolygon (g));
+		if (role == "unit") { unitZones.Push (z); continue; }
+		z.Set ("code", ZoneCode (number, name));
+		(role == "block" ? blocks : entrances).Push (z);
 	}
 	model.Set ("zones", zones);
+	model.Set ("blocks", blocks);
+	model.Set ("entrances", entrances);
+	model.Set ("unitZones", unitZones);
 
 	// --- dyert dhe dritaret
 	Json::Value openings = Json::Value::MakeArray ();
@@ -137,6 +203,8 @@ Json::Value ModelReader::Read (bool selectionOnly)
 			o.Set ("height", w.openingBase.height);
 			o.Set ("sill", w.lower);
 			o.Set ("story", static_cast<int> (el.header.floorInd));
+			double cx = 0.0, cy = 0.0;
+			if (Center (el.header, &cx, &cy)) { o.Set ("x", cx); o.Set ("y", cy); }
 			openings.Push (o);
 		}
 	}
@@ -157,6 +225,8 @@ Json::Value ModelReader::Read (bool selectionOnly)
 			o.Set ("type", libCache[libInd].empty () ? std::string ("Objekt") : libCache[libInd]);
 			o.Set ("id", ElementId (g));
 			o.Set ("story", static_cast<int> (el.header.floorInd));
+			o.Set ("x", el.object.pos.x);
+			o.Set ("y", el.object.pos.y);
 			objects.Push (o);
 		}
 	}
@@ -169,6 +239,9 @@ Json::Value ModelReader::Read (bool selectionOnly)
 	std::map<std::string, double> unknownByName;
 	std::map<Int32, bool> concreteCache;
 	std::map<std::string, double> elems;
+	// ndarja sipas bllokut: celesi "<blloku>|<0/1 nentoke>"
+	std::map<std::string, std::map<std::string, double>> compParts, elemParts;
+	std::string curPart;
 	auto addComposite = [&] (const API_AttributeIndex& idx, double area) {
 		auto it = compNames.find (idx.ToInt32_Deprecated ());
 		if (it == compNames.end ()) return;
@@ -176,6 +249,11 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		if (code.empty ()) { unknownByName[it->second] += area; return; }
 		areaByCode[code] += area;
 		nameByCode[code] = it->second;
+		compParts[curPart][code] += area;
+	};
+	auto addElem = [&] (const char* key, double v) {
+		elems[key] += v;
+		elemParts[curPart][key] += v;
 	};
 	auto isConcrete = [&] (const API_AttributeIndex& idx) -> bool {
 		const Int32 key = idx.ToInt32_Deprecated ();
@@ -208,33 +286,43 @@ Json::Value ModelReader::Read (bool selectionOnly)
 			ACAPI_ELEMENT_QUANTITY_MASK_SETFULL (mask);
 			const bool hasQ = ACAPI_Element_GetQuantities (g, nullptr, &quantities, &mask) == NoError;
 			if (!hasQ) continue;
+			double cx = 0.0, cy = 0.0;
+			const std::string block = Center (el.header, &cx, &cy) ? Structure::BlockAt (blocks, cx, cy) : std::string ();
+			curPart = block + (el.header.floorInd < 0 ? "|1" : "|0");
 			if (t == API_WallID) {
 				const double area = std::max (q.wall.surface1, q.wall.surface2);
 				if (el.wall.modelElemStructureType == API_CompositeStructure) addComposite (el.wall.composite, area);
 				else if (el.wall.modelElemStructureType == API_BasicStructure) {
 					const char* k = isConcrete (el.wall.buildingMaterial) ? "conc" : "mas";
-					elems[std::string ("E:wall:") + k + ":v"] += q.wall.volume;
-					elems[std::string ("E:wall:") + k + ":a"] += area;
+					addElem ((std::string ("E:wall:") + k + ":v").c_str (), q.wall.volume);
+					addElem ((std::string ("E:wall:") + k + ":a").c_str (), area);
 				}
 			} else if (t == API_SlabID) {
 				if (el.slab.modelElemStructureType == API_CompositeStructure) addComposite (el.slab.composite, q.slab.topSurface);
 				else if (el.slab.modelElemStructureType == API_BasicStructure) {
-					elems["E:slab:conc:v"] += q.slab.volume;
-					elems["E:slab:conc:a"] += q.slab.topSurface;
+					addElem ("E:slab:conc:v", q.slab.volume);
+					addElem ("E:slab:conc:a", q.slab.topSurface);
 				}
 			} else if (t == API_RoofID) {
 				if (el.roof.shellBase.modelElemStructureType == API_CompositeStructure) addComposite (el.roof.shellBase.composite, q.roof.topSurface);
-				else elems["E:roof:a"] += q.roof.topSurface;
-				elems["E:roof:eaves:l"] += q.roof.eavesLength;
-				elems["E:roof:ridge:l"] += q.roof.ridgesLength + q.roof.hipsLength;
+				else addElem ("E:roof:a", q.roof.topSurface);
+				addElem ("E:roof:eaves:l", q.roof.eavesLength);
+				addElem ("E:roof:ridge:l", q.roof.ridgesLength + q.roof.hipsLength);
 			} else if (t == API_ColumnID) {
-				elems["E:column:v"] += q.column.coreVolume + q.column.veneVolume;
+				addElem ("E:column:v", q.column.coreVolume + q.column.veneVolume);
 			} else if (t == API_BeamID) {
-				elems["E:beam:v"] += q.beam.volume;
+				addElem ("E:beam:v", q.beam.volume);
 			}
 		}
 	}
-	elems["E:stair:n"] += static_cast<double> (Elements (API_StairID, false, selection).GetSize ());
+	for (const API_Guid& g : Elements (API_StairID, false, selection)) {
+		API_Element el {};
+		el.header.guid = g;
+		if (ACAPI_Element_Get (&el) != NoError) continue;
+		double cx = 0.0, cy = 0.0;
+		curPart = (Center (el.header, &cx, &cy) ? Structure::BlockAt (blocks, cx, cy) : std::string ()) + (el.header.floorInd < 0 ? "|1" : "|0");
+		addElem ("E:stair:n", 1.0);
+	}
 	Json::Value comps = Json::Value::MakeArray ();
 	for (const auto& kv : areaByCode) {
 		Json::Value c = Json::Value::MakeObject ();
@@ -256,6 +344,32 @@ Json::Value ModelReader::Read (bool selectionOnly)
 	Json::Value elements = Json::Value::MakeObject ();
 	for (const auto& kv : elems) elements.Set (kv.first, std::round (kv.second * 1000.0) / 1000.0);
 	model.Set ("elements", elements);
+
+	Json::Value cparts = Json::Value::MakeArray ();
+	for (const auto& kv : compParts) {
+		const size_t bar = kv.first.rfind ('|');
+		for (const auto& ca : kv.second) {
+			Json::Value c = Json::Value::MakeObject ();
+			c.Set ("code", ca.first);
+			c.Set ("area", std::round (ca.second * 100.0) / 100.0);
+			c.Set ("block", kv.first.substr (0, bar));
+			c.Set ("below", kv.first.substr (bar + 1) == "1");
+			cparts.Push (c);
+		}
+	}
+	model.Set ("compositeParts", cparts);
+	Json::Value eparts = Json::Value::MakeArray ();
+	for (const auto& kv : elemParts) {
+		const size_t bar = kv.first.rfind ('|');
+		Json::Value e = Json::Value::MakeObject ();
+		e.Set ("block", kv.first.substr (0, bar));
+		e.Set ("below", kv.first.substr (bar + 1) == "1");
+		Json::Value vals = Json::Value::MakeObject ();
+		for (const auto& v : kv.second) vals.Set (v.first, std::round (v.second * 1000.0) / 1000.0);
+		e.Set ("values", vals);
+		eparts.Push (e);
+	}
+	model.Set ("elementParts", eparts);
 	return model;
 }
 

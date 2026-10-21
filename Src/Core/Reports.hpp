@@ -77,11 +77,17 @@ public:
 
 	static std::vector<ReportOutput> DynamicPlanReport (const Json::Value& project, const Json::Value& office,
 														const std::vector<PlanTask>& tasks,
-														const KosovoCalendar& cal, const PlanParameters& params);
+														const KosovoCalendar& cal, const PlanParameters& params,
+														const std::string& fileSuffix = "", const std::string& titleSuffix = "");
 
 	// Paramasa dhe parallogaria (HTML + Word), paramasa per ofertim (Word) dhe CSV per Excel
 	static std::vector<ReportOutput> QuantitiesAndCost (const Catalog& cat, const Json::Value& project, const Json::Value& office,
 														const Json::Value& model, const BoqOptions& opt);
+
+	// Specifikimi i njesive sipas bllokut, hyrjes dhe katit (HTML, Word, CSV)
+	static std::vector<ReportOutput> UnitSchedule (const Json::Value& project, const Json::Value& office, const Json::Value& model);
+	// Kapitulli i blloqeve per pershkrimin teknik ("" kur projekti nuk ka blloqe/njesi)
+	static std::string BlocksChapter (const Json::Value& project, const Json::Value& model);
 
 	static std::string SunPathSvg (const Site& site, int year, double projectNorthDeg, int size = 520);
 	static std::string GlaserSvg (const GlaserResult& g, int width = 640, int height = 300);

@@ -116,6 +116,89 @@ std::vector<PlanTask> DynamicPlan::FromTemplate (const Json::Value& tmpl, const 
 	return tasks;
 }
 
+std::string DynamicPlan::BlockOf (const PlanTask& t)
+{
+	const size_t c = t.id.find (':');
+	return c == std::string::npos ? std::string () : t.id.substr (0, c);
+}
+
+std::vector<PlanTask> DynamicPlan::FromTemplateMulti (const Json::Value& tmpl, const PlanParameters& common,
+													  const std::vector<PlanBlock>& blocks, bool sharedFoundation, int offsetDays)
+{
+	std::map<std::string, bool> isCommon;
+	std::vector<std::string> templateOrder;
+	for (const Json::Value& g : tmpl["groups"].AsArray ())
+		for (const Json::Value& t : g["tasks"].AsArray ()) {
+			const std::string sc = t.GetString ("scope");
+			isCommon[t.GetString ("id")] = sc == "common" || (sc == "foundation" && sharedFoundation);
+			templateOrder.push_back (t.GetString ("id"));
+		}
+
+	std::vector<PlanTask> commonTasks;
+	for (const PlanTask& t : FromTemplate (tmpl, common))
+		if (isCommon[t.id]) commonTasks.push_back (t);
+	std::map<std::string, bool> commonIds;
+	for (const PlanTask& t : commonTasks) commonIds[t.id] = true;
+
+	std::map<std::string, size_t> pos;
+	for (size_t i = 0; i < templateOrder.size (); ++i) pos[templateOrder[i]] = i;
+	size_t firstBlockPos = templateOrder.size ();
+	for (size_t i = 0; i < templateOrder.size (); ++i) if (!isCommon[templateOrder[i]]) { firstBlockPos = i; break; }
+
+	std::vector<PlanTask> head, tail, body;
+	for (const PlanTask& t : commonTasks) (pos[t.id] < firstBlockPos ? head : tail).push_back (t);
+
+	std::map<std::string, std::vector<std::string>> blockIdsByTemplate;
+	for (size_t k = 0; k < blocks.size (); ++k) {
+		const PlanBlock& bl = blocks[k];
+		PlanParameters bp = common;
+		bp.grossArea = bl.grossArea;
+		bp.floorsAbove = bl.floorsAbove;
+		bp.floorsBelow = sharedFoundation ? 0 : bl.floorsBelow;
+		const std::vector<PlanTask> bt = FromTemplate (tmpl, bp);
+		std::map<std::string, bool> own;
+		for (const PlanTask& t : bt) if (!isCommon[t.id]) own[t.id] = true;
+		std::string label = bl.code;
+		if (!bl.name.empty () && bl.name != bl.code)
+			label = bl.name.find (bl.code) != std::string::npos ? bl.name : bl.code + " (" + bl.name + ")";
+		for (PlanTask t : bt) {
+			if (isCommon[t.id]) continue;
+			const std::string orig = t.id;
+			std::vector<PlanLink> links;
+			bool hasOwnPred = false;
+			for (PlanLink l : t.links) {
+				if (own.count (l.predecessor)) { l.predecessor = bl.code + ":" + l.predecessor; hasOwnPred = true; links.push_back (l); }
+				else if (commonIds.count (l.predecessor)) links.push_back (l);
+			}
+			// blloku k fillon pas bllokut k-1 (zhvendosje ne dite pune)
+			if (!hasOwnPred && k > 0) links.push_back ({ blocks[k - 1].code + ":" + orig, "SS", offsetDays });
+			t.links = links;
+			t.id = bl.code + ":" + orig;
+			t.wbs = bl.code + "." + t.wbs;
+			t.group = label + " \xE2\x80\x93 " + t.group;
+			blockIdsByTemplate[orig].push_back (t.id);
+			body.push_back (t);
+		}
+	}
+	for (PlanTask& t : tail) {
+		std::vector<PlanLink> links;
+		for (const PlanLink& l : t.links) {
+			if (commonIds.count (l.predecessor)) { links.push_back (l); continue; }
+			for (const std::string& id : blockIdsByTemplate[l.predecessor]) links.push_back ({ id, l.type, l.lag });
+		}
+		t.links = links;
+	}
+	for (PlanTask& t : head) {
+		std::vector<PlanLink> links;
+		for (const PlanLink& l : t.links) if (commonIds.count (l.predecessor)) links.push_back (l);
+		t.links = links;
+	}
+	std::vector<PlanTask> all = head;
+	all.insert (all.end (), body.begin (), body.end ());
+	all.insert (all.end (), tail.begin (), tail.end ());
+	return all;
+}
+
 std::vector<PlanTask> DynamicPlan::FromJson (const Json::Value& arr)
 {
 	std::vector<PlanTask> tasks;

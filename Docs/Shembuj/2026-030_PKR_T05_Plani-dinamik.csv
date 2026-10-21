@@ -1,0 +1,55 @@
+﻿WBS;Grupi;Pozicioni;Ditë pune;Fillimi;Mbarimi;Rezerva (ditë);Kritike;Varësitë;Ekipi;Shënime
+1.1;1. Punimet përgatitore;Njoftimi për fillimin e punimeve dhe hapja e ditarit të ndërtimit;0;01.03.2027;01.03.2027;0;po;;;"UA (MMPH) Nr. 05/2017; UA Nr. 15/2013 për ditarin e ndërtimit"
+1.2;1. Punimet përgatitore;Rrethimi dhe organizimi i kantierit, tabela informuese;7;01.03.2027;10.03.2027;0;po;1.1;Kontraktori;
+1.3;1. Punimet përgatitore;Shënjimi gjeodezik i objektit dhe boshteve;2;03.03.2027;04.03.2027;0;po;1.2SS+2;Gjeodeti;
+2.1;2. Punimet e dheut dhe themelet;Gërmimi i dheut për bodrum dhe largimi i dheut;17;05.03.2027;31.03.2027;0;po;1.3;Makineri;
+2.2;2. Punimet e dheut dhe themelet;Tampon zhavorri dhe beton i dobët;7;01.04.2027;12.04.2027;0;po;1.3, 2.1;;
+2.3;2. Punimet e dheut dhe themelet;Hidroizolimi i themeleve;5;13.04.2027;19.04.2027;0;po;2.2;;
+2.4;2. Punimet e dheut dhe themelet;Armimi dhe betonimi i themeleve;16;20.04.2027;14.05.2027;0;po;2.3;Betonierë, armatues;
+2.5;2. Punimet e dheut dhe themelet;Muret dhe pllaka e bodrumit (b/a);26;18.05.2027;22.06.2027;198;jo;2.4;;
+2.6;2. Punimet e dheut dhe themelet;Hidroizolimi, XPS dhe drenazha e mureve të bodrumit, mbushja;9;23.06.2027;05.07.2027;198;jo;2.5;;
+2.7;2. Punimet e dheut dhe themelet;Inspektimi i fazës: themelet;0;18.05.2027;18.05.2027;0;po;2.4;;Kërkesë për inspektim sipas UA (MMPH) Nr. 05/2017
+B1.3.1;Blloku B1 – 3. Konstruksioni dhe kulmi;Konstruksioni b/a i kateve (kolona, mure, trarë, pllaka);56;18.05.2027;03.08.2027;0;po;2.4, 2.7;Betonierë, armatues, kallëpxhinj;
+B1.3.2;Blloku B1 – 3. Konstruksioni dhe kulmi;Shkallët b/a;8;01.06.2027;10.06.2027;87;jo;B1.3.1SS+10;;
+B1.3.3;Blloku B1 – 3. Konstruksioni dhe kulmi;Muraturat e jashtme dhe ndarëse;39;07.06.2027;29.07.2027;52;jo;B1.3.1SS+14;Muratorë;
+B1.3.4;Blloku B1 – 3. Konstruksioni dhe kulmi;Konstruksioni i kulmit;15;04.08.2027;24.08.2027;20;jo;B1.3.1;Zdrukthëtarë / betonierë;
+B1.3.5;Blloku B1 – 3. Konstruksioni dhe kulmi;Mbulesa e kulmit dhe hidroizolimi;14;25.08.2027;13.09.2027;20;jo;B1.3.4;;
+B1.3.6;Blloku B1 – 3. Konstruksioni dhe kulmi;Objekti nën kulm (vrazhdë);0;14.09.2027;14.09.2027;20;jo;2.4, B1.3.2, B1.3.3, B1.3.5;;
+B1.3.7;Blloku B1 – 3. Konstruksioni dhe kulmi;Inspektimi i fazës: konstruksioni;0;04.08.2027;04.08.2027;176;jo;B1.3.1;;
+B1.4.1;Blloku B1 – 4. Instalimet;Instalimet hidro-sanitare (shtrirja e gypave);19;17.06.2027;13.07.2027;74;jo;B1.3.3SS+8;Instalues;
+B1.4.2;Blloku B1 – 4. Instalimet;Instalimet elektrike dhe të dobëta (shtrirja);19;18.06.2027;14.07.2027;74;jo;B1.4.1SS+1;Elektricistë;
+B1.4.3;Blloku B1 – 4. Instalimet;Ngrohja qendrore / ventilimi (shtrirja);17;21.06.2027;13.07.2027;75;jo;B1.4.1SS+2;Instalues;
+B1.5.1;Blloku B1 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Dritaret dhe dyert e jashtme (PVC/alumin);11;14.09.2027;28.09.2027;20;jo;B1.3.6;Montues;
+B1.5.2;Blloku B1 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Suvatimi i brendshëm;31;29.09.2027;10.11.2027;20;jo;B1.5.1, B1.4.3, B1.4.2, B1.4.1;Suvatues;
+B1.5.3;Blloku B1 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Estrihi (dysheme lundruese) me termo/zë-izolim;18;11.11.2027;06.12.2027;20;jo;B1.5.2;;
+B1.5.4;Blloku B1 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Fasada termike (ETICS) / fasada e ventiluar;28;01.10.2027;09.11.2027;87;jo;B1.5.1+2;Fasaderë;
+B1.5.5;Blloku B1 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Llamarinat, ullukët dhe vertikalet;7;08.10.2027;18.10.2027;119;jo;B1.5.4SS+5;;
+B1.6.1;Blloku B1 – 6. Punimet përfundimtare;Pllakat qeramike (banjo, kuzhinë, hyrje);23;16.12.2027;21.01.2028;20;jo;B1.5.3+7;Pllakaxhinj;
+B1.6.2;Blloku B1 – 6. Punimet përfundimtare;Patinimi dhe lyerja e mureve e tavaneve;31;21.12.2027;07.02.2028;20;jo;B1.6.1SS+3;Ngjyrues;
+B1.6.3;Blloku B1 – 6. Punimet përfundimtare;Dyshemetë (parket / laminat);18;08.02.2028;06.03.2028;20;jo;B1.6.2, B1.5.3+25;;Pritet tharja e estrihit (lagështia sipas prodhuesit)
+B1.6.4;Blloku B1 – 6. Punimet përfundimtare;Dyert e brendshme;5;07.03.2028;13.03.2028;20;jo;B1.6.3;;
+B1.6.5;Blloku B1 – 6. Punimet përfundimtare;Montimi i elementeve sanitare, ndriçimit dhe pajisjeve;9;08.02.2028;21.02.2028;34;jo;B1.6.1, B1.6.2;;
+B2.3.1;Blloku B2 – 3. Konstruksioni dhe kulmi;Konstruksioni b/a i kateve (kolona, mure, trarë, pllaka);56;15.06.2027;31.08.2027;0;po;2.4, 2.7, B1.3.1SS+20;Betonierë, armatues, kallëpxhinj;
+B2.3.2;Blloku B2 – 3. Konstruksioni dhe kulmi;Shkallët b/a;8;29.06.2027;08.07.2027;67;jo;B2.3.1SS+10;;
+B2.3.3;Blloku B2 – 3. Konstruksioni dhe kulmi;Muraturat e jashtme dhe ndarëse;39;05.07.2027;26.08.2027;32;jo;B2.3.1SS+14;Muratorë;
+B2.3.4;Blloku B2 – 3. Konstruksioni dhe kulmi;Konstruksioni i kulmit;15;01.09.2027;21.09.2027;0;po;B2.3.1;Zdrukthëtarë / betonierë;
+B2.3.5;Blloku B2 – 3. Konstruksioni dhe kulmi;Mbulesa e kulmit dhe hidroizolimi;14;22.09.2027;11.10.2027;0;po;B2.3.4;;
+B2.3.6;Blloku B2 – 3. Konstruksioni dhe kulmi;Objekti nën kulm (vrazhdë);0;12.10.2027;12.10.2027;0;po;2.4, B2.3.2, B2.3.3, B2.3.5;;
+B2.3.7;Blloku B2 – 3. Konstruksioni dhe kulmi;Inspektimi i fazës: konstruksioni;0;01.09.2027;01.09.2027;156;jo;B2.3.1;;
+B2.4.1;Blloku B2 – 4. Instalimet;Instalimet hidro-sanitare (shtrirja e gypave);19;15.07.2027;10.08.2027;54;jo;B2.3.3SS+8;Instalues;
+B2.4.2;Blloku B2 – 4. Instalimet;Instalimet elektrike dhe të dobëta (shtrirja);19;16.07.2027;11.08.2027;54;jo;B2.4.1SS+1;Elektricistë;
+B2.4.3;Blloku B2 – 4. Instalimet;Ngrohja qendrore / ventilimi (shtrirja);17;19.07.2027;10.08.2027;55;jo;B2.4.1SS+2;Instalues;
+B2.5.1;Blloku B2 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Dritaret dhe dyert e jashtme (PVC/alumin);11;12.10.2027;26.10.2027;0;po;B2.3.6;Montues;
+B2.5.2;Blloku B2 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Suvatimi i brendshëm;31;27.10.2027;08.12.2027;0;po;B2.5.1, B2.4.3, B2.4.2, B2.4.1;Suvatues;
+B2.5.3;Blloku B2 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Estrihi (dysheme lundruese) me termo/zë-izolim;18;09.12.2027;06.01.2028;0;po;B2.5.2;;
+B2.5.4;Blloku B2 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Fasada termike (ETICS) / fasada e ventiluar;28;29.10.2027;07.12.2027;67;jo;B2.5.1+2;Fasaderë;
+B2.5.5;Blloku B2 – 5. Zdrukthtaria e jashtme, suvatimi dhe fasada;Llamarinat, ullukët dhe vertikalet;7;05.11.2027;15.11.2027;99;jo;B2.5.4SS+5;;
+B2.6.1;Blloku B2 – 6. Punimet përfundimtare;Pllakat qeramike (banjo, kuzhinë, hyrje);23;19.01.2028;21.02.2028;0;po;B2.5.3+7;Pllakaxhinj;
+B2.6.2;Blloku B2 – 6. Punimet përfundimtare;Patinimi dhe lyerja e mureve e tavaneve;31;24.01.2028;08.03.2028;0;po;B2.6.1SS+3;Ngjyrues;
+B2.6.3;Blloku B2 – 6. Punimet përfundimtare;Dyshemetë (parket / laminat);18;09.03.2028;03.04.2028;0;po;B2.6.2, B2.5.3+25;;Pritet tharja e estrihit (lagështia sipas prodhuesit)
+B2.6.4;Blloku B2 – 6. Punimet përfundimtare;Dyert e brendshme;5;04.04.2028;11.04.2028;0;po;B2.6.3;;
+B2.6.5;Blloku B2 – 6. Punimet përfundimtare;Montimi i elementeve sanitare, ndriçimit dhe pajisjeve;9;09.03.2028;21.03.2028;14;jo;B2.6.1, B2.6.2;;
+6.6;6. Punimet përfundimtare;Rregullimi i jashtëm (shtigje, parkingu, gjelbërimi, rrethoja);16;08.12.2027;14.03.2028;19;jo;B1.5.4, B2.5.4;;
+6.7;6. Punimet përfundimtare;Pastrimi përfundimtar dhe largimi i kantierit;3;12.04.2028;14.04.2028;0;po;B1.5.5, B2.5.5, 6.6, B1.6.5, B2.6.5, B1.6.4, B2.6.4;;
+7.1;7. Pranimi teknik;Inspektimi përfundimtar;0;18.04.2028;18.04.2028;0;po;6.7;;UA (MMPH) Nr. 05/2017
+7.2;7. Pranimi teknik;Kërkesa për certifikatën e përdorimit;0;18.04.2028;18.04.2028;0;po;7.1;;

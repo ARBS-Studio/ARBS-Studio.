@@ -50,10 +50,26 @@ struct PlanParameters {
 	std::string projectName;
 };
 
+// Blloku i nje kompleksi (plani sipas blloqeve)
+struct PlanBlock {
+	std::string code;				// B1, B2 ...
+	std::string name;
+	double      grossArea = 300.0;
+	int         floorsAbove = 2;
+	int         floorsBelow = 0;
+};
+
 class DynamicPlan {
 public:
 	// Krijon detyrat nga shablloni (Data/plan_template.json) dhe parametrat e projektit
 	static std::vector<PlanTask> FromTemplate (const Json::Value& tmpl, const PlanParameters& p);
+	// Kompleks me blloqe: punimet e perbashketa nje here, pastaj zinxhiri i punimeve per cdo bllok
+	// (ID "B1:konstr", grupi "B1 - ..."), blloku k fillon "offsetDays" dite pune pas bllokut k-1 (SS).
+	// sharedFoundation: germimi, themelet dhe bodrumi jane te perbashketa (common.grossArea = siperfaqja e tyre).
+	static std::vector<PlanTask> FromTemplateMulti (const Json::Value& tmpl, const PlanParameters& common,
+													const std::vector<PlanBlock>& blocks, bool sharedFoundation, int offsetDays);
+	static std::string BlockOf (const PlanTask& t);		// "B1" per "B1:konstr", "" per punimet e perbashketa
+
 	static std::vector<PlanTask> FromJson (const Json::Value& tasks);
 	static Json::Value           ToJson (const std::vector<PlanTask>& tasks);
 

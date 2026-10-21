@@ -89,6 +89,7 @@
   .note { font-size: 11px; color: var(--muted); }
   .money { font-variant-numeric: tabular-nums; }
   input.pr { width: 74px; padding: 2px 4px; text-align: right; }
+  table.t input.pr { width: 100%; min-width: 34px; }
   input.pr.chg { border-color: var(--green); background: var(--green-soft); }
   .tot { font-size: 15px; font-weight: 700; color: var(--green); }
   .files a { display: block; color: var(--green); cursor: pointer; text-decoration: underline; font-size: 11px; word-break: break-all; }
@@ -208,6 +209,8 @@
     profile: function () {
       const fields = (S.catalog && S.catalog.projectFields) || [];
       const phases = (S.catalog && S.catalog.phases) || [];
+      const dest = (S.catalog && S.catalog.destinations) || {};
+      const curDest = (dest.destinations || []).filter(function (d) { return d.code === S.project.destinimi_kodi; })[0];
       let h = '<h2>Profili i zyrës dhe projekti</h2><p class="sub">Të dhënat shfaqen në fletat, përshkrimin teknik dhe në Project Info të Archicad-it.</p>';
       h += '<div class="card"><h3>Profili i zyrës</h3>';
       OFFICE_FIELDS.forEach(function (f) { h += '<label class="f"><span>' + f[1] + '</span><input type="text" data-office="' + f[0] + '" value="' + esc(S.office[f[0]] || '') + '"></label>'; });
@@ -218,6 +221,17 @@
         if (f.key === 'faza') {
           h += '<label class="f"><span>' + esc(f.label) + '</span><select data-proj="faza">' + phases.map(function (p) {
             return '<option value="' + esc(p.name) + '"' + (S.project.faza === p.name ? ' selected' : '') + '>' + esc(p.code + ' – ' + p.name) + '</option>'; }).join('') + '</select></label>';
+        } else if (f.select === 'categories') {
+          const cats = (dest.categories || []);
+          h += '<label class="f"><span>' + esc(f.label) + '</span><select data-proj="kategoria"><option value="">–</option>' + cats.map(function (c) {
+            return '<option value="' + esc(c.code) + '"' + (String(S.project.kategoria || '').replace(/^Kategoria\s*/i, '') === c.code ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></label>';
+        } else if (f.select === 'destinations') {
+          h += '<label class="f"><span>' + esc(f.label) + '</span><select data-proj="destinimi_kodi" id="pDest"><option value="">–</option>' + (dest.destinations || []).map(function (d) {
+            return '<option value="' + esc(d.code) + '"' + (S.project.destinimi_kodi === d.code ? ' selected' : '') + '>' + esc(d.name) + '</option>'; }).join('') + '</select></label>';
+        } else if (f.select === 'subs') {
+          const subs = (curDest && curDest.subs) || [];
+          h += '<label class="f' + (subs.length ? '' : ' hide') + '"><span>' + esc(f.label) + '</span><select data-proj="nen_destinimi"><option value="">–</option>' + subs.map(function (x) {
+            return '<option' + (S.project.nen_destinimi === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></label>';
         } else if (f.key === 'komuna') {
           h += '<label class="f"><span>' + esc(f.label) + '</span><select data-proj="komuna">' + (S.catalog.cities || []).map(function (c) {
             return '<option' + (S.project.komuna === c.name ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></label>';
@@ -225,7 +239,9 @@
           h += '<label class="f"><span>' + esc(f.label) + '</span><input type="' + (f.number ? 'number' : 'text') + '" step="any" data-proj="' + f.key + '" placeholder="' + esc(f.example || '') + '" value="' + esc(S.project[f.key] == null ? '' : S.project[f.key]) + '"></label>';
         }
       });
-      h += '<label class="chk"><input type="checkbox" id="pushInfo" checked><span>Shkruaj edhe në <b>Project Info</b> të Archicad-it</span></label>';
+      h += '</div>';
+      if (curDest && curDest.multi) h += structureCard();
+      h += '<div class="card"><label class="chk"><input type="checkbox" id="pushInfo" checked><span>Shkruaj edhe në <b>Project Info</b> të Archicad-it</span></label>';
       h += '<div class="btns"><button class="b" id="saveProject">Ruaj projektin</button></div></div>';
       return h;
     },
@@ -327,7 +343,8 @@
       let h = '<h2>Skemat</h2><p class="sub">Lexohen nga modeli, grupohen sipas tipit dhe dimensioneve; eksportohen në HTML (printim/PDF) dhe CSV (Excel).</p>';
       h += '<label class="chk"><input type="checkbox" id="selOnly"><span>Vetëm elementet e selektuara</span></label><div class="tiles">';
       [['door', 'Skema e dyerve', 'D01… me pamje, B×H, pragu, sasia, katet'], ['window', 'Skema e dritareve', 'W01… me pamje, parapeti dhe Uw ≤ 1,60'],
-       ['inventory', 'Skema e inventarit', 'Mobilieri, sanitaria, ndriçimi sipas kateve'], ['zones', 'Tabela e sipërfaqeve', 'Zonat sipas kateve me totale']].forEach(function (t) {
+       ['inventory', 'Skema e inventarit', 'Mobilieri, sanitaria, ndriçimi sipas kateve'], ['zones', 'Tabela e sipërfaqeve', 'Zonat sipas kateve me totale'],
+       ['units', 'Specifikimi i njësive', 'Banesat/lokalet sipas bllokut, hyrjes dhe katit, me rekapitulim']].forEach(function (t) {
         h += '<button class="tile" data-sched="' + t[0] + '"><b>' + t[1] + '</b><small>' + t[2] + '</small></button>';
       });
       h += '</div><div id="schedOut" style="margin-top:10px"></div>';
@@ -349,6 +366,108 @@
     },
   };
 
+
+  // ---------------------------------------------------------------- struktura e kompleksit (blloqe, hyrje, njesi)
+  function manual () {
+    const m = S.project.njesite_manual || {};
+    return { types: m.types || [], placements: m.placements || [], common: m.common || {} };
+  }
+  function roomsText (rooms) { return (rooms || []).map(function (r) { return r.name + ' = ' + num(r.area); }).join('\n'); }
+  function parseRooms (txt) {
+    return String(txt || '').split('\n').map(function (l) {
+      const m = l.match(/^\s*(.*?)[\s=:;]+([\d]+(?:[.,]\d+)?)\s*(m2|m²)?\s*$/i);
+      return m && m[1] ? { name: m[1].trim(), area: Number(m[2].replace(',', '.')) } : null;
+    }).filter(Boolean);
+  }
+  function structureCard () {
+    const p = S.project, m = manual(), info = S.structure || {};
+    const kinds = ((S.catalog.destinations || {}).unitKinds) || [];
+    let h = '<div class="card"><h3>Struktura e projektit (blloqe, hyrje, njësi)</h3>';
+    h += '<p class="note">Blloqet dhe hyrjet merren nga zonat <b>«Blloku B1»</b>, <b>«Hyrja H1»</b> (ose kategoritë «ARBS Blloku», «ARBS Hyrja»). Njësitë: zona <b>«Banesa»</b> / «Lokal» / «Zyrë» me numrin e njësisë, ose përcaktohen më poshtë me dorë. Dyert, dritaret, materialet dhe kostot merren gjithmonë nga modeli, të ndara sipas blloqeve.</p>';
+    h += '<div class="btns"><button class="b s" id="readStruct">Lexo blloqet nga modeli</button></div>';
+    if (info.blocks) {
+      h += '<p class="note">Në model: <b>' + info.blocks.length + '</b> blloqe, ' + info.entrances + ' zona hyrjesh, ' + info.unitZones + ' zona njësish, ' + info.rooms + ' hapësira.</p>';
+      if (info.blocks.length) {
+        h += '<table class="t"><tr><th>Blloku</th><th class="r">Gjurma m²</th><th class="r">Neto m²</th><th class="r">BTS m² (opsionale)</th></tr>';
+        info.blocks.forEach(function (b) {
+          const v = (p.blloqet_bts || {})[b.code];
+          h += '<tr><td>' + esc(b.code === 'PB' ? 'Pjesa e përbashkët' : b.name) + '</td><td class="r">' + num(b.area, 1) + '</td><td class="r">' + num(b.net, 1) + '</td><td class="r"><input type="number" step="any" class="pr" data-bts="' + esc(b.code) + '" placeholder="' + num(b.net * 1.2, 0) + '" value="' + esc(v == null ? '' : v) + '"></td></tr>';
+        });
+        h += '</table>';
+      }
+    }
+    h += '<label class="chk"><input type="checkbox" id="stShared"' + (p.bodrumi_perbashket === false ? '' : ' checked') + '><span>Bodrumi / garazha nëntokësore është e përbashkët për blloqet<small>gërmimi, themelet dhe katet nëntokë dalin si «Pjesa e përbashkët»</small></span></label>';
+    h += '<div class="row"><label class="f"><span>Koef. ballkon</span><input type="number" step="0.01" id="stKb" placeholder="p.sh. 0,50" value="' + esc(p.koef_ballkon == null ? '' : p.koef_ballkon) + '"></label><label class="f"><span>Koef. lozhë</span><input type="number" step="0.01" id="stKl" placeholder="p.sh. 0,75" value="' + esc(p.koef_lozhe == null ? '' : p.koef_lozhe) + '"></label><label class="f"><span>Koef. terasë</span><input type="number" step="0.01" id="stKt" placeholder="p.sh. 0,25" value="' + esc(p.koef_terase == null ? '' : p.koef_terase) + '"></label></div>';
+    h += '<p class="note">Koeficientët i vendosni ju; bosh = 1,00.</p>';
+    h += '<label class="f"><span>Zhvendosja e fillimit mes blloqeve në planin dinamik (ditë pune)</span><input type="number" min="0" id="stOff" value="' + esc(p.blloqet_zhvendosja == null ? 20 : p.blloqet_zhvendosja) + '"></label>';
+
+    h += '<details' + (m.types.length ? ' open' : '') + '><summary>Njësitë me dorë (kur nuk janë zona në model) – tipet: ' + m.types.length + ', vendosje: ' + m.placements.length + '</summary>';
+    h += '<p class="note">1) Përcaktoni tipet e njësive me hapësirat (një për rresht: «Qëndrimi ditor = 24,5»). 2) Vendosni tipet sipas bllokut, hyrjes, kateve (p.sh. 1-7) dhe numrit për kat. Numërimi bëhet vetë: B1-H1-1, B1-H1-2 …</p>';
+    m.types.forEach(function (t, i) {
+      h += '<div class="phase"><div class="row"><label class="f"><span>Kodi</span><input type="text" data-tcode="' + i + '" value="' + esc(t.code) + '"></label><label class="f"><span>Emri</span><input type="text" data-tname="' + i + '" value="' + esc(t.name || '') + '"></label>' +
+        '<label class="f"><span>Lloji</span><select data-tkind="' + i + '">' + kinds.map(function (k) { return '<option value="' + k.code + '"' + ((t.kind || 'banesa') === k.code ? ' selected' : '') + '>' + esc(k.name) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Bruto m²</span><input type="number" step="any" data-tgross="' + i + '" value="' + esc(t.gross || '') + '"></label></div>' +
+        '<label class="f"><span>Hapësirat</span><textarea rows="5" data-trooms="' + i + '" placeholder="Qëndrimi ditor = 24,5&#10;Kuzhina = 9&#10;Dhoma e gjumit = 13,8&#10;Banjo = 5,2&#10;Tualet = 2&#10;Depo = 2&#10;Ballkon = 6">' + esc(roomsText(t.rooms)) + '</textarea></label>' +
+        '<div class="btns"><button class="b s" data-tdel="' + i + '">Fshi tipin</button></div></div>';
+    });
+    h += '<div class="btns"><button class="b s" id="tAdd">+ Shto tip njësie</button></div>';
+    if (m.placements.length) {
+      h += '<table class="t" style="margin-top:8px"><tr><th>Tipi</th><th>Blloku</th><th>Hyrja</th><th>Katet</th><th>Për kat</th><th></th></tr>';
+      m.placements.forEach(function (pl, i) {
+        h += '<tr><td><input type="text" class="pr" data-ptype="' + i + '" value="' + esc(pl.type) + '"></td><td><input type="text" class="pr" data-pblock="' + i + '" value="' + esc(pl.block || '') + '"></td><td><input type="text" class="pr" data-pentr="' + i + '" value="' + esc(pl.entrance || 'H1') + '"></td>' +
+          '<td><input type="text" class="pr" data-pfloors="' + i + '" value="' + esc(pl.floors || '1') + '"></td><td><input type="number" class="pr" min="1" data-pper="' + i + '" value="' + esc(pl.perFloor || 1) + '"></td><td><a href="#" data-pdel="' + i + '">fshi</a></td></tr>';
+      });
+      h += '</table>';
+    }
+    h += '<div class="btns"><button class="b s" id="pAdd">+ Shto vendosje</button></div>';
+    h += '<label class="f"><span>Hapësirat e përbashkëta sipas bllokut, m² (p.sh. B1 = 140)</span><textarea rows="2" id="mCommon">' + esc(Object.keys(m.common).map(function (k) { return k + ' = ' + m.common[k]; }).join('\n')) + '</textarea></label>';
+    h += '</details></div>';
+    return h;
+  }
+  // lexon formularin e struktures ne S.project (thirret para ruajtjes dhe para cdo ndryshimi te listave)
+  function readStructure () {
+    if (!$('stShared')) return;
+    const p = S.project;
+    p.bodrumi_perbashket = $('stShared').checked;
+    ['Kb:koef_ballkon', 'Kl:koef_lozhe', 'Kt:koef_terase'].forEach(function (x) { const a = x.split(':'); const v = $('st' + a[0]).value; if (v === '') delete p[a[1]]; else p[a[1]] = Number(v); });
+    p.blloqet_zhvendosja = Number($('stOff').value) || 0;
+    const bts = {};
+    document.querySelectorAll('[data-bts]').forEach(function (i) { if (i.value !== '') bts[i.getAttribute('data-bts')] = Number(i.value); });
+    p.blloqet_bts = bts;
+    const m = manual();
+    m.types.forEach(function (t, i) {
+      t.code = $q('[data-tcode="' + i + '"]').value.trim() || ('T' + (i + 1));
+      t.name = $q('[data-tname="' + i + '"]').value;
+      t.kind = $q('[data-tkind="' + i + '"]').value;
+      t.gross = Number($q('[data-tgross="' + i + '"]').value) || 0;
+      t.rooms = parseRooms($q('[data-trooms="' + i + '"]').value);
+    });
+    m.placements.forEach(function (pl, i) {
+      pl.type = $q('[data-ptype="' + i + '"]').value.trim();
+      pl.block = $q('[data-pblock="' + i + '"]').value.trim();
+      pl.entrance = $q('[data-pentr="' + i + '"]').value.trim() || 'H1';
+      pl.floors = $q('[data-pfloors="' + i + '"]').value.trim() || '1';
+      pl.perFloor = Number($q('[data-pper="' + i + '"]').value) || 1;
+    });
+    const common = {};
+    $('mCommon').value.split('\n').forEach(function (l) { const x = l.match(/^\s*(\S+)\s*[=:]\s*([\d.,]+)/); if (x) common[x[1]] = Number(x[2].replace(',', '.')); });
+    m.common = common;
+    p.njesite_manual = m;
+  }
+  function $q (sel) { return document.querySelector(sel) || { value: '' }; }
+  function bindStructure () {
+    if (!$('stShared')) return;
+    function rerender () { const st = $('main').scrollTop; readProfileForm(); open('profile'); $('main').scrollTop = st; }
+    $('readStruct').onclick = function () { readProfileForm(); run('structureInfo', {}, 'Blloqet u lexuan nga modeli').then(function (r) { if (r && r.ok) { S.structure = r; rerender(); } }); };
+    $('tAdd').onclick = function () { readStructure(); const m = manual(); m.types.push({ code: String.fromCharCode(65 + m.types.length), name: 'Banesa tip ' + String.fromCharCode(65 + m.types.length), kind: 'banesa', rooms: [] }); S.project.njesite_manual = m; rerender(); };
+    $('pAdd').onclick = function () { readStructure(); const m = manual(); m.placements.push({ type: (m.types[0] || {}).code || 'A', block: ((S.structure || {}).blocks || [{}])[0].code || 'B1', entrance: 'H1', floors: '1-7', perFloor: 1 }); S.project.njesite_manual = m; rerender(); };
+    document.querySelectorAll('[data-tdel]').forEach(function (b) { b.onclick = function () { readStructure(); const m = manual(); m.types.splice(Number(b.getAttribute('data-tdel')), 1); S.project.njesite_manual = m; rerender(); }; });
+    document.querySelectorAll('[data-pdel]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); readStructure(); const m = manual(); m.placements.splice(Number(a.getAttribute('data-pdel')), 1); S.project.njesite_manual = m; rerender(); }; });
+  }
+  function readProfileForm () {
+    Object.assign(S.project, readInputs('data-proj'));
+    readStructure();
+  }
   function defaultStart () { const d = new Date(); d.setMonth(d.getMonth() + 1); d.setDate(1); return d.toISOString().slice(0, 10); }
 
   function layerBar (c) {
@@ -387,7 +506,10 @@
         o.projektuesit = String(o.projektuesit || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
         run('saveOffice', { office: o }, 'Profili i zyrës u ruajt').then(function (r) { if (r && r.ok) S.office = o; });
       };
+      if ($('pDest')) $('pDest').onchange = function () { const st = $('main').scrollTop; readProfileForm(); S.project.nen_destinimi = ''; open('profile'); $('main').scrollTop = st; };
+      bindStructure();
       $('saveProject').onclick = function () {
+        readStructure();
         const p = Object.assign({}, S.project, readInputs('data-proj'));
         const ph = (S.catalog.phases || []).filter(function (x) { return x.name === p.faza; })[0];
         if (ph) p.faza_kodi = ph.code;
@@ -436,12 +558,18 @@
         const x = r.boq;
         let h = '<div class="card"><h3>Rezultati</h3><div class="kv"><b>Punimet</b><span class="money">' + money(x.works) + ' €</span><b>Të paparashikuarat ' + num(x.contingencyRate, 0) + '%</b><span class="money">' + money(x.contingency) + ' €</span><b>Gjithsej pa TVSH</b><span class="money">' + money(x.net) + ' €</span><b>TVSH ' + num(x.vatRate, 0) + '%</b><span class="money">' + money(x.vat) + ' €</span><b>Gjithsej me TVSH</b><span class="tot money">' + money(x.total) + ' €</span>' +
           (x.bts ? '<b>Për m² BTS</b><span class="money">' + money(x.perM2) + ' €/m² pa TVSH (BTS ' + num(x.bts, 1) + ' m²)</span>' : '') + '</div>' + filesHtml(r) + '</div>';
-        h += '<div class="card"><h3>Rekapitulimi</h3><table class="t"><tr><th>Grupi (kliko për pozicionet)</th><th class="r">€</th><th class="r">%</th></tr>' + x.groups.map(function (g, gi) {
+        if (x.groups && x.groups.length) h += '<div class="card"><h3>Rekapitulimi</h3><table class="t"><tr><th>Grupi (kliko për pozicionet)</th><th class="r">€</th><th class="r">%</th></tr>' + x.groups.map(function (g, gi) {
           return '<tr class="bqg" data-g="' + gi + '" style="cursor:pointer"><td><b>' + esc(g.id) + '.</b> ' + esc(g.name) + '</td><td class="r money">' + money(g.total) + '</td><td class="r">' + num(x.works ? g.total / x.works * 100 : 0, 1) + '</td></tr>' +
             '<tr class="hide" id="bql' + gi + '"><td colspan="3"><table class="t">' + g.lines.map(function (l) {
               return '<tr><td>' + esc(l.code) + (l.estimated ? '*' : '') + '</td><td>' + esc(l.desc.length > 80 ? l.desc.slice(0, 78) + '…' : l.desc) + (l.source ? '<br><span class="note">' + esc(l.source) + '</span>' : '') + '</td><td class="r">' + num(l.qty, l.unit === 'kg' || l.unit === 'copë' ? 0 : 2) + ' ' + esc(l.unit) + '<br><span class="note">× ' + money(l.price) + '</span></td><td class="r money">' + money(l.value) + '</td></tr>';
             }).join('') + '</table></td></tr>';
         }).join('') + '</table>' + (x.notes && x.notes.length ? '<p class="note">' + x.notes.map(esc).join('<br>') + '</p>' : '') + '</div>';
+        if (r.parts && r.parts.length) {
+          h += '<div class="card"><h3>Sipas blloqeve</h3><table class="t"><tr><th>Pjesa</th><th class="r">BTS m²</th><th class="r">Pa TVSH €</th><th class="r">Me TVSH €</th><th class="r">€/m²</th></tr>' + r.parts.map(function (p) {
+            return '<tr><td>' + esc(p.name) + '</td><td class="r">' + num(p.bts, 1) + '</td><td class="r money">' + money(p.net) + '</td><td class="r money">' + money(p.total) + '</td><td class="r">' + money(p.perM2) + '</td></tr>';
+          }).join('') + '<tr><td><b>GJITHSEJ</b></td><td class="r">' + num(x.bts, 1) + '</td><td class="r money"><b>' + money(x.net) + '</b></td><td class="r money"><b>' + money(x.total) + '</b></td><td class="r">' + money(x.perM2) + '</td></tr></table>' +
+            '<p class="note">Dokumenti përmban rekapitulimin e projektit, çdo bllok veç e veç, pjesën e përbashkët dhe koston për njësi; secili bllok del edhe si skedar më vete.</p></div>';
+        }
         $('boqOut').innerHTML = h;
         document.querySelectorAll('.bqg').forEach(function (r) { r.onclick = function () { $('bql' + r.getAttribute('data-g')).classList.toggle('hide'); }; });
       }
@@ -475,7 +603,12 @@
     schedules: function () {
       document.querySelectorAll('[data-sched]').forEach(function (b) {
         b.onclick = function () {
-          run('schedule', { kind: b.getAttribute('data-sched'), selectionOnly: $('selOnly').checked }, b.querySelector('b').textContent + ' u gjenerua')
+          const k = b.getAttribute('data-sched');
+          if (k === 'units') {
+            run('units', {}, 'Specifikimi i njësive u gjenerua').then(function (r) { if (r && r.ok) $('schedOut').innerHTML = '<p class="note">Njësi: <b>' + (r.units || []).length + '</b> (' + (r.source === 'manual' ? 'të përcaktuara me dorë' : 'nga zonat e modelit') + ')</p>' + filesHtml(r); });
+            return;
+          }
+          run('schedule', { kind: k, selectionOnly: $('selOnly').checked }, b.querySelector('b').textContent + ' u gjenerua')
             .then(function (r) { if (r && r.ok) $('schedOut').innerHTML = '<p class="note">Elemente: <b>' + (r.count || 0) + '</b></p>' + filesHtml(r); });
         };
       });
@@ -484,12 +617,15 @@
       function params (exp) {
         const leave = $('plLeave').value.split('\n').map(function (l) { const m = l.match(/(\d{4}-\d{2}-\d{2}).*?(\d{4}-\d{2}-\d{2})/); return m ? { from: m[1], to: m[2], name: 'Pushim kolektiv' } : null; }).filter(Boolean);
         return { start: $('plStart').value, area: Number($('plArea').value) || 300, floorsAbove: Number($('plUp').value) || 1, floorsBelow: Number($('plDown').value) || 0,
-                 saturday: $('plSat').checked, winter: $('plWinter').checked, leave: leave, export: exp };
+                 saturday: $('plSat').checked, winter: $('plWinter').checked, leave: leave, export: exp,
+                 offset: S.project.blloqet_zhvendosja == null ? 20 : Number(S.project.blloqet_zhvendosja) };
       }
       function show (r) {
         if (!r || !r.ok) return;
         S.plan = { params: params(false), tasks: r.tasks };
         let h = '<div class="card"><h3>Rezultati</h3><div class="kv"><b>Fillimi</b><span>' + fmt(r.start) + '</span><b>Përfundimi</b><span>' + fmt(r.finish) + '</span><b>Ditë pune</b><span>' + r.workingDays + '</span><b>Ditë kalendarike</b><span>' + r.calendarDays + '</span></div>' + filesHtml(r) + '</div>';
+        if (r.blocks && r.blocks.length) h += '<div class="card"><h3>Sipas blloqeve</h3><table class="t"><tr><th>Blloku</th><th class="r">Fillimi</th><th class="r">Mbarimi</th><th class="r">Ditë pune</th></tr>' +
+          r.blocks.map(function (b) { return '<tr><td>' + esc(b.name) + '</td><td class="r">' + fmt(b.start) + '</td><td class="r">' + fmt(b.finish) + '</td><td class="r">' + b.workingDays + '</td></tr>'; }).join('') + '</table></div>';
         h += '<div class="card"><h3>Pozicionet</h3><table class="t"><tr><th>WBS</th><th>Pozicioni</th><th class="r">Ditë</th><th class="r">Fillimi</th><th class="r">Mbarimi</th></tr>' +
           r.tasks.map(function (t) { return '<tr' + (t.critical ? ' class="crit"' : '') + '><td>' + esc(t.wbs) + '</td><td>' + esc(t.name) + '</td><td class="r">' + t.duration + '</td><td class="r">' + fmt(t.start) + '</td><td class="r">' + fmt(t.finish) + '</td></tr>'; }).join('') + '</table><p class="note">Vija e kuqe = rruga kritike.</p></div>';
         h += '<div class="card"><h3>Festat që zbriten</h3><table class="t"><tr><th>Festa</th><th class="r">Dita jo-pune</th></tr>' +
@@ -510,6 +646,7 @@
   function readModel () {
     return call('modelSummary', {}).then(function (m) { if (m && m.ok) S.model = m; return m; });
   }
+  function isMulti () { const d = ((S.catalog.destinations || {}).destinations || []).filter(function (x) { return x.code === S.project.destinimi_kodi; })[0]; return !!(d && d.multi); }
   function click (id) { const b = $(id); if (b) b.click(); }
   const AUTO = {
     techdesc: function () { click('mkTech'); },
@@ -531,12 +668,13 @@
     },
     schedules: function () {
       const kinds = [['door', 'Skema e dyerve'], ['window', 'Skema e dritareve'], ['inventory', 'Skema e inventarit'], ['zones', 'Tabela e sipërfaqeve']];
+      if (isMulti()) kinds.push(['units', 'Specifikimi i njësive']);
       let html = '', i = 0;
       (function next () {
         if (i >= kinds.length) { status('U krye: skemat nga modeli u gjeneruan', 'ok'); return; }
         const k = kinds[i++];
-        run('schedule', { kind: k[0], selectionOnly: false }, k[1] + ' u gjenerua').then(function (r) {
-          if (r && r.ok) { html += '<p class="note"><b>' + k[1] + '</b> · elemente: ' + (r.count || 0) + '</p>' + filesHtml(r); if ($('schedOut')) $('schedOut').innerHTML = html; }
+        run(k[0] === 'units' ? 'units' : 'schedule', { kind: k[0], selectionOnly: false }, k[1] + ' u gjenerua').then(function (r) {
+          if (r && r.ok) { html += '<p class="note"><b>' + k[1] + '</b> · ' + (k[0] === 'units' ? 'njësi: ' + (r.units || []).length : 'elemente: ' + (r.count || 0)) + '</p>' + filesHtml(r); if ($('schedOut')) $('schedOut').innerHTML = html; }
           next();
         });
       })();

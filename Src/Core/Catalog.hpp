@@ -49,6 +49,8 @@ public:
 	const Json::Value& Layers () const        { return layersJson; }
 	const Json::Value& Documents () const     { return documentsJson; }
 	const Json::Value& Prices () const        { return pricesJson; }
+	const Json::Value& Destinations () const  { return destinationsJson; }
+	const Json::Value* FindDestination (const std::string& code) const;
 	const Json::Value& CitiesJson () const    { return citiesJson; }
 	const Json::Value& MaterialsJson () const { return materialsJson; }
 	const Json::Value& CompositesJson () const { return compositesJson; }
@@ -62,7 +64,7 @@ public:
 private:
 	bool Build (std::string* error);
 
-	Json::Value materialsJson, compositesJson, citiesJson, holidaysJson, planJson, phasesJson, layersJson, documentsJson, pricesJson;
+	Json::Value materialsJson, compositesJson, citiesJson, holidaysJson, planJson, phasesJson, layersJson, documentsJson, pricesJson, destinationsJson;
 	std::deque<Material>   materials;		// deque: adresat mbeten te qendrueshme
 	std::vector<Composite> composites;
 	std::vector<City>      cities;

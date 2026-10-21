@@ -7,10 +7,12 @@
 
 #include "Catalog.hpp"
 #include "Json.hpp"
+#include "Structure.hpp"
 
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace ARBS {
@@ -55,6 +57,11 @@ public:
 														  std::vector<std::string>* notes = nullptr);
 
 	static BoqResult Compute (const Catalog& cat, const Json::Value& model, const Json::Value& project, const BoqOptions& opt);
+
+	// Projektet me blloqe: nje rezultat per cdo pjese ("B1", "B2" ..., "PB" = pjesa e perbashket).
+	// Pa blloqe: nje pjese e vetme me kod "".
+	static std::vector<std::pair<std::string, BoqResult>> ComputeParts (const Catalog& cat, const Json::Value& model, const Json::Value& project, const BoqOptions& opt);
+	static Json::Value PartsToJson (const std::vector<std::pair<std::string, BoqResult>>& parts, const Json::Value& model);
 
 	static BoqOptions  OptionsFromJson (const Json::Value& req, const Catalog& cat);
 	static Json::Value ToJson (const BoqResult& r);

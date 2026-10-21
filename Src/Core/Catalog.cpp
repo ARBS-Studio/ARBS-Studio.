@@ -12,7 +12,8 @@ const std::vector<std::string>& Catalog::FileNames ()
 {
 	static const std::vector<std::string> names = {
 		"materials.json", "composites.json", "cities.json", "holidays.json",
-		"plan_template.json", "phases.json", "layers.json", "documents.json", "prices.json"
+		"plan_template.json", "phases.json", "layers.json", "documents.json", "prices.json",
+		"destinations.json"
 	};
 	return names;
 }
@@ -50,7 +51,7 @@ bool Catalog::LoadFromStrings (const std::map<std::string, std::string>& files, 
 		!parse ("cities.json", citiesJson) || !parse ("holidays.json", holidaysJson) ||
 		!parse ("plan_template.json", planJson) || !parse ("phases.json", phasesJson) ||
 		!parse ("layers.json", layersJson) || !parse ("documents.json", documentsJson) ||
-		!parse ("prices.json", pricesJson))
+		!parse ("prices.json", pricesJson) || !parse ("destinations.json", destinationsJson))
 		return false;
 	return Build (error);
 }
@@ -130,6 +131,13 @@ const Material* Catalog::FindMaterial (const std::string& id) const
 {
 	for (const Material& m : materials)
 		if (m.id == id) return &m;
+	return nullptr;
+}
+
+const Json::Value* Catalog::FindDestination (const std::string& code) const
+{
+	for (const Json::Value& d : destinationsJson["destinations"].AsArray ())
+		if (d.GetString ("code") == code || d.GetString ("name") == code) return &d;
 	return nullptr;
 }
 

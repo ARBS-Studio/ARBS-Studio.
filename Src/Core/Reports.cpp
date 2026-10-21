@@ -346,12 +346,18 @@ ReportOutput Reports::TechnicalDescription (const Catalog& cat, const Json::Valu
 				b << "<tr><td>Sip\xC3\xABrfaqja neto (nga zonat e modelit)</td><td class=\"n\">" << (netTotal > 0 ? Html::Num (netTotal) + " m\xC2\xB2" : "\xE2\x80\x93") << "</td></tr>";
 				b << "<tr><td>Indeksi i shfryt\xC3\xABzimit t\xC3\xAB parcel\xC3\xABs (gjurma / parcela)</td><td class=\"n\">" << (parcel > 0 && foot > 0 ? Html::Num (foot / parcel, 2) : "\xE2\x80\x93") << "</td></tr>";
 				b << "<tr><td>Indeksi i nd\xC3\xABrtimit (BTS / parcela)</td><td class=\"n\">" << (parcel > 0 && bts > 0 ? Html::Num (bts / parcel, 2) : "\xE2\x80\x93") << "</td></tr>";
+				b << "<tr><td>Kategoria e nd\xC3\xABrtimit</td><td class=\"n\">" << Html::Esc (project.GetString ("kategoria", "\xE2\x80\x93")) << "</td></tr>";
+				b << "<tr><td>Destinimi</td><td class=\"n\">" << Html::Esc (project.GetString ("destinimi_emri", project.GetString ("destinimi", "\xE2\x80\x93")))
+				  << (project.GetString ("nen_destinimi").empty () ? std::string () : " \xE2\x80\x93 " + Html::Esc (project.GetString ("nen_destinimi"))) << "</td></tr>";
 				b << "<tr><td>Etazhiteti</td><td class=\"n\">" << Html::Esc (project.GetString ("katet", "\xE2\x80\x93")) << "</td></tr>";
 				b << "<tr><td>Lart\xC3\xABsia e objektit</td><td class=\"n\">" << (project.GetNumber ("lartesia") > 0 ? Html::Num (project.GetNumber ("lartesia")) + " m" : "\xE2\x80\x93") << "</td></tr>";
 				b << "<tr><td>Vendparkingjet</td><td class=\"n\">" << Html::Esc (project.GetString ("parkingu", "\xE2\x80\x93")) << "</td></tr>";
 				b << "</table>";
 			} else if (t == "[[TABELA_ZONAVE]]") {
 				b << zones;
+				const std::string blocks = BlocksChapter (project, model);
+				if (!blocks.empty ())
+					b << "<h3>Struktura e projektit sipas blloqeve, hyrjeve dhe nj\xC3\xABsive</h3>" << blocks;
 			} else if (t == "[[TABELA_KOMPOZITAVE]]") {
 				if (comps.empty ()) {
 					b << "<p class=\"note\">N\xC3\xAB model nuk u gjet\xC3\xABn kompozita ARBS (kodet MJ-, MT-, MB-, MN-, DY-, KR-, KP-, TH-). Krijoni kompozitat nga paleta ARBS dhe p\xC3\xABrdorini n\xC3\xAB mure, pllaka dhe kulme.</p>";
@@ -932,12 +938,14 @@ std::vector<ReportOutput> Reports::ZoneSchedule (const Json::Value& project, con
 // =============================================================================
 
 std::vector<ReportOutput> Reports::DynamicPlanReport (const Json::Value& project, const Json::Value& office, const std::vector<PlanTask>& tasks,
-													  const KosovoCalendar& cal, const PlanParameters& params)
+													  const KosovoCalendar& cal, const PlanParameters& params,
+													  const std::string& fileSuffix, const std::string& titleSuffix)
 {
+	const std::string planTitle = "PLANI DINAMIK I PUNIMEVE" + (titleSuffix.empty () ? std::string () : " \xE2\x80\x93 " + titleSuffix);
 	std::ostringstream b;
 	if (tasks.empty ()) {
 		b << "<p>Plani nuk ka detyra.</p>";
-		return { { "Plani-dinamik.html", Document ("PLANI DINAMIK I PUNIMEVE", b.str (), project, office, false, true), "text/html" } };
+		return { { "Plani-dinamik" + fileSuffix + ".html", Document (planTitle, b.str (), project, office, false, true), "text/html" } };
 	}
 	Date first = tasks.front ().es, last = tasks.front ().ef;
 	for (const PlanTask& t : tasks) { if (t.es < first) first = t.es; if (last < t.ef) last = t.ef; }
@@ -951,6 +959,32 @@ std::vector<ReportOutput> Reports::DynamicPlanReport (const Json::Value& project
 	  << "<tr><td>" << first.ToAlb () << " (" << WeekdayNameAlb (first.Weekday ()) << ")</td><td>" << last.ToAlb () << " (" << WeekdayNameAlb (last.Weekday ()) << ")</td><td class=\"n\">" << workDays
 	  << "</td><td class=\"n\">" << (last.ToDays () - first.ToDays () + 1) << "</td><td class=\"n\">" << tasks.size () << "</td><td>"
 	  << (params.saturdayWorking ? "E h\xC3\xABn\xC3\xAB \xE2\x80\x93 e shtun\xC3\xAB" : "E h\xC3\xABn\xC3\xAB \xE2\x80\x93 e premte") << "</td></tr></table>";
+
+	// rekapitulimi sipas blloqeve (detyrat "B1:...")
+	{
+		std::vector<std::string> order;
+		std::map<std::string, std::pair<Date, Date>> span;
+		std::map<std::string, int> count;
+		for (const PlanTask& t : tasks) {
+			const std::string bl = DynamicPlan::BlockOf (t);
+			const std::string key = bl.empty () ? std::string ("Punimet e p\xC3\xABrbashk\xC3\xABta") : "Blloku " + bl;
+			if (!span.count (key)) { order.push_back (key); span[key] = { t.es, t.ef }; }
+			if (t.es < span[key].first) span[key].first = t.es;
+			if (span[key].second < t.ef) span[key].second = t.ef;
+			count[key]++;
+		}
+		if (order.size () > 1) {
+			b << "<h2>Rekapitulimi sipas blloqeve</h2><table><tr><th>Pjesa</th><th>Fillimi</th><th>P\xC3\xABrfundimi</th><th class=\"n\">Dit\xC3\xAB pune</th><th class=\"n\">Dit\xC3\xAB kalendarike</th><th class=\"n\">Detyra</th></tr>";
+			for (const std::string& k : order) {
+				const Date& a = span[k].first;
+				const Date& z = span[k].second;
+				b << "<tr><td>" << Html::Esc (k) << "</td><td>" << a.ToAlb () << "</td><td>" << z.ToAlb () << "</td><td class=\"n\">" << cal.CountWorkingDays (a, z)
+				  << "</td><td class=\"n\">" << (z.ToDays () - a.ToDays () + 1) << "</td><td class=\"n\">" << count[k] << "</td></tr>";
+			}
+			b << "<tr class=\"sum\"><td>GJITHSEJ PROJEKTI</td><td>" << first.ToAlb () << "</td><td>" << last.ToAlb () << "</td><td class=\"n\">" << workDays
+			  << "</td><td class=\"n\">" << (last.ToDays () - first.ToDays () + 1) << "</td><td class=\"n\">" << tasks.size () << "</td></tr></table>";
+		}
+	}
 
 	// --- Gantt SVG
 	const double pxDay = days > 700 ? 1.2 : days > 400 ? 2.0 : days > 200 ? 3.0 : 5.0;
@@ -1080,8 +1114,8 @@ std::vector<ReportOutput> Reports::DynamicPlanReport (const Json::Value& project
 	b << "</table>";
 
 	std::vector<ReportOutput> outs;
-	const std::string base = Html::Slug (project.GetString ("nr", "ARBS")) + "_" + Html::Slug (project.GetString ("faza_kodi", "PZ")) + "_T05_Plani-dinamik";
-	outs.push_back ({ base + ".html", Document ("PLANI DINAMIK I PUNIMEVE", b.str (), project, office, false, true), "text/html" });
+	const std::string base = Html::Slug (project.GetString ("nr", "ARBS")) + "_" + Html::Slug (project.GetString ("faza_kodi", "PZ")) + "_T05_Plani-dinamik" + fileSuffix;
+	outs.push_back ({ base + ".html", Document (planTitle, b.str (), project, office, false, true), "text/html" });
 	outs.push_back ({ base + ".csv", CsvDoc (csv), "text/csv" });
 	return outs;
 }
