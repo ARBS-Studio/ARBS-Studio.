@@ -159,7 +159,8 @@ GSErrCode ArbsPalette::PaletteControlCallBack (Int32, API_PaletteMessageID messa
 			if (HasInstance () && GetInstance ().IsVisible ()) GetInstance ().DisableItems ();
 			break;
 		case APIPalMsg_DisableItems_End:
-			if (HasInstance () && GetInstance ().IsVisible ()) GetInstance ().EnableItems ();
+			// gjithmone riaktivizo (edhe kur paleta u fsheh nderkohe), qe paleta te mos mbetet e bllokuar
+			if (HasInstance ()) GetInstance ().EnableItems ();
 			break;
 		case APIPalMsg_IsPaletteVisible:
 			*(reinterpret_cast<bool*> (param)) = HasInstance () && GetInstance ().IsVisible ();

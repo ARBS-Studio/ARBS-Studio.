@@ -45,7 +45,7 @@ Name: "en"; MessagesFile: "compiler:Default.isl"
 en.WelcomeLabel1=Mirë se vini në instalimin e ARBS Studio
 en.WelcomeLabel2=Ky instalues vendos add-on-in ARBS Studio në Archicad 28, 29 dhe 30 (versionet që gjenden në kompjuter).%n%nMbyllni Archicad-in para se të vazhdoni.
 en.SelectComponentsLabel2=Zgjidhni versionet e Archicad-it ku do të instalohet ARBS Studio:
-en.FinishedLabel=ARBS Studio u instalua. Hapni Archicad-in dhe zgjidhni menynë «ARBS Studio › Paleta ARBS Studio».
+en.FinishedLabel=ARBS Studio u instalua. Hapni Archicad-in dhe zgjidhni menynë «ARBS Studio › Paleta ARBS Studio».%n%nNëse në Options › Add-On Manager shihni dy hyrje ARBS Studio ose një hyrje që mungon, hiqni (Remove) atë që nuk është në dosjen Add-Ons të Archicad-it.%n%nLog-u diagnostik ruhet te Dokumentet › ARBS Studio › Log.
 
 [Types]
 Name: "auto"; Description: "Versionet e gjetura të Archicad-it"
@@ -55,7 +55,7 @@ Name: "custom"; Description: "Zgjedhje manuale"; Flags: iscustom
 Name: "ac28"; Description: "Archicad 28"; Types: auto custom; Check: HasArchicad('28')
 Name: "ac29"; Description: "Archicad 29"; Types: auto custom; Check: HasArchicad('29')
 Name: "ac30"; Description: "Archicad 30"; Types: auto custom; Check: HasArchicad('30')
-Name: "copy"; Description: "Kopje rezervë në Dokumentet publike (për instalim manual me Add-On Manager)"; Types: auto custom
+Name: "copy"; Description: "Kopje rezervë në Dokumentet publike (vetëm për instalim manual; mos e ngarkoni njëkohësisht me versionin e instaluar)"; Types: custom
 
 [Files]
 Source: "{#BinDir}\AC28\ARBS_Studio.apx"; DestDir: "{code:AcDir|28}\Add-Ons\ARBS Studio"; Components: ac28; Flags: ignoreversion skipifsourcedoesntexist
@@ -66,6 +66,13 @@ Source: "{#BinDir}\AC29\ARBS_Studio.apx"; DestDir: "{commondocs}\ARBS Studio\Arc
 Source: "{#BinDir}\AC30\ARBS_Studio.apx"; DestDir: "{commondocs}\ARBS Studio\Archicad 30"; Components: copy; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\..\Docs\Udhezuesi.pdf"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "arbs.ico"; DestDir: "{app}"; Flags: ignoreversion
+
+[InstallDelete]
+; kopjet e vjetra rezerve (versionet 0.1.x - 0.2.0): nese jane ngarkuar me Add-On Manager,
+; Archicad-i ngarkon dy kopje te ARBS Studio me te njejtin ID (konflikt). Fshihen kur instalohet versioni perkates.
+Type: files; Name: "{commondocs}\ARBS Studio\Archicad 28\ARBS_Studio.apx"; Components: ac28
+Type: files; Name: "{commondocs}\ARBS Studio\Archicad 29\ARBS_Studio.apx"; Components: ac29
+Type: files; Name: "{commondocs}\ARBS Studio\Archicad 30\ARBS_Studio.apx"; Components: ac30
 
 [Code]
 var

@@ -82,7 +82,9 @@ Json::Value SaveAndOpen (const Json::Value& project, const std::vector<ReportOut
 	for (const std::string& p : paths) files.Push (Json::Value (p));
 	r.Set ("files", files);
 	r.Set ("folder", LocationToUtf8 (OutputFolder (project)));
-	if (openFirst && !paths.empty ()) OpenWithSystem (paths.front ());
+	Log::Stage ("dokumentet u ruajten", static_cast<long long> (paths.size ()));
+	// dokumenti hapet nga paleta pasi te merret pergjigja (jo brenda komandes)
+	if (openFirst && !paths.empty ()) r.Set ("openFile", paths.front ());
 	return r;
 }
 
@@ -524,6 +526,22 @@ Json::Value CmdHolidays (const Json::Value& req)
 	return r;
 }
 
+Json::Value CmdLog (const Json::Value& req)
+{
+	Json::Value r = Ok ();
+	r.Set ("path", Log::CurrentPath ());
+	r.Set ("folder", Log::FolderPath ());
+	if (req.GetBool ("open", false)) OpenWithSystem (Log::CurrentPath ());
+	return r;
+}
+
+// shenime nga paleta (p.sh. kohe e tejkaluar, lirim manual)
+Json::Value CmdClientLog (const Json::Value& req)
+{
+	Log::Write ("UI    " + req.GetString ("message"));
+	return Ok ();
+}
+
 Json::Value CmdPending (const Json::Value&)
 {
 	Json::Value r = Ok ();
@@ -571,12 +589,42 @@ std::string Commands::Handle (const std::string& request)
 		{ "holidays", CmdHolidays },
 		{ "open", CmdOpen },
 		{ "pending", CmdPending },
+		{ "log", CmdLog },
+		{ "clientLog", CmdClientLog },
 	};
+	// Mbrojtje nga rihyrja: nje komande e vetme ne te njejten kohe.
+	static bool        running = false;
+	static std::string runningCmd;
 	Json::Value result;
+	std::string cmd;
 	try {
 		const Json::Value req = Json::Value::Parse (request);
-		auto it = handlers.find (req.GetString ("cmd"));
-		result = (it == handlers.end ()) ? Fail ("Komand\xC3\xAB e panjohur: " + req.GetString ("cmd")) : it->second (req);
+		cmd = req.GetString ("cmd");
+		const bool quiet = cmd == "clientLog" || cmd == "pending" || cmd == "log";
+		if (running && !quiet) {
+			Log::Write ("REFUZIM " + cmd + ": po punon ende " + runningCmd);
+			result = Fail ("ARBS Studio po kryen ende: " + runningCmd + ". Prisni sa t\xC3\xAB p\xC3\xABrfundoj\xC3\xAB.");
+			result.Set ("busy", true);
+			return result.Dump ();
+		}
+		auto it = handlers.find (cmd);
+		if (it == handlers.end ()) {
+			result = Fail ("Komand\xC3\xAB e panjohur: " + cmd);
+		} else if (quiet) {
+			result = it->second (req);
+		} else {
+			struct Guard {
+				Guard (const std::string& c) { running = true; runningCmd = c; Log::Begin (c); }
+				~Guard () { running = false; runningCmd.clear (); }
+			} guard (cmd);
+			try {
+				result = it->second (req);
+				Log::End (result.GetBool ("ok"), result.GetString ("error"));
+			} catch (...) {
+				Log::End (false, "p\xC3\xABrjashtim");
+				throw;
+			}
+		}
 	} catch (const Json::ParseError& e) {
 		result = Fail (std::string ("K\xC3\xABrkes\xC3\xAB e pavlefshme: ") + e.what ());
 	} catch (const std::exception& e) {

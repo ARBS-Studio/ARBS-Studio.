@@ -103,7 +103,7 @@
 </header>
 <nav id="nav"></nav>
 <main id="main"></main>
-<footer><div class="msg" id="msg">Gati.</div><button id="openFolder" title="Hap dosjen e dokumenteve">Dosja</button></footer>
+<footer><div class="msg" id="msg">Gati.</div><button id="openLog" title="Hap log-un diagnostik">Log</button><button id="openFolder" title="Hap dosjen e dokumenteve">Dosja</button></footer>
 
 <script>
 (function () {
@@ -139,7 +139,11 @@
       })();
     });
   }
-  function call (cmd, data) {
+  // Radha e vetme: thirrjet drejt Archicad-it kalojne nje nga nje (asnjehere dy njekohesisht),
+  // secila me kufi kohor; "Liro paletën" e zhbllokon paleten pa pritur pergjigjen.
+  const TIMEOUT = { init: 60, pending: 15, log: 15, clientLog: 10, open: 20, saveOffice: 30, saveProject: 60, savePrices: 30 };
+  const QUEUE = { chain: Promise.resolve(), epoch: 0, current: null, started: 0 };
+  function rawCall (cmd, data) {
     const req = JSON.stringify(Object.assign({ cmd: cmd }, data || {}));
     return bridgeReady().then(function (ok) {
       if (ok) return window.ARBS.Call(req).then(function (r) {
@@ -148,6 +152,44 @@
       });
       return window.ARBSMock ? window.ARBSMock(cmd, data || {}) : { ok: false, error: 'Lidhja me Archicad-in nuk u krijua. Mbyllni dhe rihapni paletën.' };
     });
+  }
+  function call (cmd, data) {
+    const epoch = QUEUE.epoch;
+    const job = function () {
+      if (epoch !== QUEUE.epoch) return { ok: false, error: 'Anuluar (paleta u lirua).', cancelled: true };
+      QUEUE.current = cmd; QUEUE.started = Date.now();
+      const limit = (TIMEOUT[cmd] || 900) * 1000;
+      let timer = null;
+      const timeout = new Promise(function (resolve) {
+        timer = setTimeout(function () {
+          resolve({ ok: false, timeout: true, error: 'Archicad-i nuk u përgjigj për «' + cmd + '» brenda ' + Math.round(limit / 1000) + ' s. Shikoni log-un (butoni Log).' });
+        }, limit);
+      });
+      return Promise.race([rawCall(cmd, data), timeout]).then(function (r) {
+        clearTimeout(timer);
+        QUEUE.current = null;
+        if (r && r.timeout) clientLog('kohe e tejkaluar: ' + cmd);
+        if (epoch !== QUEUE.epoch) return { ok: false, error: 'Anuluar (paleta u lirua).', cancelled: true };
+        return r;
+      }, function (e) { clearTimeout(timer); QUEUE.current = null; return { ok: false, error: String(e) }; });
+    };
+    const p = QUEUE.chain.then(job, job);
+    QUEUE.chain = p.then(function () {}, function () {});
+    return p;
+  }
+  function clientLog (msg) {
+    // jashte radhes: vetem shenim ne log, C++ e pranon edhe kur nje komande po punon
+    rawCall('clientLog', { message: msg }).then(function () {}, function () {});
+  }
+  // zhbllokon paleten: injoron pergjigjet qe vijne me vone dhe fillon radhe te re
+  function releasePalette () {
+    clientLog('lirim manual i paletes' + (QUEUE.current ? ' gjate ' + QUEUE.current : ''));
+    QUEUE.epoch++;
+    QUEUE.chain = Promise.resolve();
+    QUEUE.current = null;
+    S.busy = false;
+    stopTicker();
+    status('Paleta u lirua. Nëse Archicad-i po punon ende, prisni pak para veprimit të radhës.', 'err');
   }
 
   const S = { section: 'profile', catalog: null, office: {}, project: {}, plan: {}, model: null, busy: false };
@@ -161,16 +203,43 @@
     m.innerHTML = text;
   }
 
+  let ticker = null;
+  function stopTicker () { if (ticker) { clearInterval(ticker); ticker = null; } }
+  function startTicker (label) {
+    stopTicker();
+    const t0 = Date.now();
+    const draw = function () {
+      const sec = Math.round((Date.now() - t0) / 1000);
+      status('<span class="spin"></span> ' + esc(label) + ' · ' + sec + ' s' + (sec >= 20 ? ' · <a href="#" id="releaseLink">Liro paletën</a>' : ''));
+      const l = $('releaseLink');
+      if (l) l.onclick = function (e) { e.preventDefault(); releasePalette(); };
+    };
+    draw();
+    ticker = setInterval(draw, 1000);
+  }
+
   function run (cmd, data, label) {
-    if (S.busy) return Promise.resolve(null);
+    if (S.busy) {
+      const sec = Math.round((Date.now() - (S.busySince || Date.now())) / 1000);
+      status('Prisni: «' + esc(String(S.busyLabel || '').replace(/\s+u\s+(gjenerua|gjeneruan|krijua|krijuan|ruajt|ruajtën|llogarit|lexua|lexuan|vendos|rikthyen)\b.*$/i, '')) + '» është ende në punë (' + sec + ' s). <a href="#" id="releaseLink">Liro paletën</a>', 'err');
+      const l = $('releaseLink');
+      if (l) l.onclick = function (e) { e.preventDefault(); releasePalette(); };
+      return Promise.resolve(null);
+    }
     S.busy = true;
-    status('<span class="spin"></span> ' + esc(label || 'Duke punuar…'));
+    S.busySince = Date.now();
+    S.busyLabel = label || cmd;
+    const epoch = QUEUE.epoch;
+    startTicker('Në punë: ' + String(label || cmd).replace(/\s+u\s+(gjenerua|gjeneruan|krijua|krijuan|ruajt|ruajtën|llogarit|lexua|lexuan|vendos|rikthyen)\b.*$/i, ''));
     return call(cmd, data).then(function (r) {
+      if (epoch !== QUEUE.epoch) return null;		// paleta u lirua nderkohe
       S.busy = false;
+      stopTicker();
       if (!r || !r.ok) { status(esc((r && r.error) || 'Gabim i panjohur.'), 'err'); return r; }
       status('U krye: ' + esc(label || cmd), 'ok');
+      if (r.openFile) call('open', { path: r.openFile });	// dokumenti hapet pasi pergjigja te kete arritur
       return r;
-    }).catch(function (e) { S.busy = false; status(esc(String(e)), 'err'); return null; });
+    }).catch(function (e) { S.busy = false; stopTicker(); status(esc(String(e)), 'err'); return null; });
   }
 
   function filesHtml (r) {
@@ -183,6 +252,7 @@
     if (a) { call('open', { path: a.getAttribute('data-open') }); }
   });
   $('openFolder').onclick = function () { call('open', {}); };
+  $('openLog').onclick = function () { rawCall('log', { open: true }).then(function (r) { if (r && r.path) status('Log-u: ' + esc(r.path)); }); };
 
   // ---------------------------------------------------------------- navigimi
   function buildNav () {
@@ -711,7 +781,6 @@
     S.ready = true;
     doPending().then(function (handled) {
       if (!handled) open(S.section);
-      if (!S.model) readModel();
     });
     }).catch(function (e) { status('Gabim gjatë nisjes: ' + esc(String(e)), 'err'); });
   }

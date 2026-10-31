@@ -42,5 +42,19 @@ bool OpenWithSystem (const std::string& utf8Path);
 
 void Report (const std::string& utf8Message);	// Session Report i Archicad-it
 
+// -----------------------------------------------------------------------------
+// Log-u diagnostik: Dokumentet/ARBS Studio/Log/arbs_log_<data_ora>.txt (nje skedar per sesion).
+// Cdo operacion: ID, komanda, fillimi, fazat (me kohen ne ms dhe numrin e elementeve), mbarimi, gabimi.
+// -----------------------------------------------------------------------------
+namespace Log {
+	int         Begin (const std::string& command);					// kthen ID e operacionit
+	void        Stage (const std::string& stage, long long count = -1);	// faza e perfunduar
+	void        End (bool ok, const std::string& error = std::string ());
+	void        Write (const std::string& line);
+	std::string FolderPath ();
+	std::string CurrentPath ();
+	long long   ElapsedMs ();										// koha qe nga fillimi i operacionit aktual
+}
+
 }	// namespace AC
 }	// namespace ARBS

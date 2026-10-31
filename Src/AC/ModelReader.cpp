@@ -116,6 +116,44 @@ static std::string ZoneCode (const std::string& number, const std::string& name)
 	return sp == std::string::npos ? name : name.substr (sp + 1);
 }
 
+// Maska e sasive: vetem vlerat qe perdoren (llogaritja e plote e te gjitha sasive eshte e rende)
+static API_QuantitiesMask QuantityMask (API_ElemTypeID type)
+{
+	API_QuantitiesMask mask;
+	ACAPI_ELEMENT_QUANTITY_MASK_CLEAR (mask);
+	switch (type) {
+		case API_ZoneID:
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, zone, area);
+			break;
+		case API_WallID:
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, wall, volume);
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, wall, surface1);
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, wall, surface2);
+			break;
+		case API_SlabID:
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, slab, volume);
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, slab, topSurface);
+			break;
+		case API_RoofID:
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, roof, topSurface);
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, roof, eavesLength);
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, roof, ridgesLength);
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, roof, hipsLength);
+			break;
+		case API_ColumnID:
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, column, coreVolume);
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, column, veneVolume);
+			break;
+		case API_BeamID:
+			ACAPI_ELEMENT_QUANTITY_MASK_SET (mask, beam, volume);
+			break;
+		default:
+			ACAPI_ELEMENT_QUANTITY_MASK_SETFULL (mask);
+			break;
+	}
+	return mask;
+}
+
 static std::map<Int32, std::string> CompositeNames ()
 {
 	std::map<Int32, std::string> names;
@@ -136,6 +174,7 @@ static std::map<Int32, std::string> CompositeNames ()
 Json::Value ModelReader::Read (bool selectionOnly)
 {
 	Json::Value model = Json::Value::MakeObject ();
+	Log::Stage ("leximi i modelit filloi");
 	model.Set ("stories", Stories ());
 	model.Set ("north", NorthDeg ());
 
@@ -161,8 +200,7 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		API_ElementQuantity q {};
 		API_Quantities quantities;
 		quantities.elements = &q;
-		API_QuantitiesMask mask;
-		ACAPI_ELEMENT_QUANTITY_MASK_SETFULL (mask);
+		API_QuantitiesMask mask = QuantityMask (API_ZoneID);
 		double area = 0.0;
 		if (ACAPI_Element_GetQuantities (g, nullptr, &quantities, &mask) == NoError) area = q.zone.area;
 		const std::string number = ToUtf8 (el.zone.roomNoStr);
@@ -182,11 +220,13 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		(role == "block" ? blocks : entrances).Push (z);
 	}
 	model.Set ("zones", zones);
+	Log::Stage ("modeli: zonat (dhoma / blloqe / hyrje / njesi)", static_cast<long long> (zones.Size () + blocks.Size () + entrances.Size () + unitZones.Size ()));
 	model.Set ("blocks", blocks);
 	model.Set ("entrances", entrances);
 	model.Set ("unitZones", unitZones);
 
 	// --- dyert dhe dritaret
+	std::map<Int32, std::string> openingLib;		// emrat e objekteve te bibliotekes (lexohen nje here)
 	Json::Value openings = Json::Value::MakeArray ();
 	const std::pair<API_ElemTypeID, const char*> openingTypes[] = { { API_DoorID, "door" }, { API_WindowID, "window" } };
 	for (const auto& ot : openingTypes) {
@@ -198,7 +238,8 @@ Json::Value ModelReader::Read (bool selectionOnly)
 			Json::Value o = Json::Value::MakeObject ();
 			o.Set ("kind", ot.second);
 			o.Set ("id", ElementId (g));
-			o.Set ("type", LibPartName (w.openingBase.libInd));
+			if (openingLib.count (w.openingBase.libInd) == 0) openingLib[w.openingBase.libInd] = LibPartName (w.openingBase.libInd);
+			o.Set ("type", openingLib[w.openingBase.libInd]);
 			o.Set ("width", w.openingBase.width);
 			o.Set ("height", w.openingBase.height);
 			o.Set ("sill", w.lower);
@@ -209,6 +250,7 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		}
 	}
 	model.Set ("openings", openings);
+	Log::Stage ("modeli: dyert dhe dritaret", static_cast<long long> (openings.Size ()));
 
 	// --- inventari (objektet dhe ndricimi)
 	Json::Value objects = Json::Value::MakeArray ();
@@ -231,6 +273,7 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		}
 	}
 	model.Set ("objects", objects);
+	Log::Stage ("modeli: objektet", static_cast<long long> (objects.Size ()));
 
 	// --- kompozitat e perdorura (siperfaqet) dhe elementet per paramasen
 	const std::map<Int32, std::string> compNames = CompositeNames ();
@@ -274,6 +317,7 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		return conc;
 	};
 	const API_ElemTypeID structTypes[] = { API_WallID, API_SlabID, API_RoofID, API_ColumnID, API_BeamID };
+	long long structCount = 0;
 	for (API_ElemTypeID t : structTypes) {
 		for (const API_Guid& g : Elements (t, false, selection)) {
 			API_Element el {};
@@ -282,8 +326,8 @@ Json::Value ModelReader::Read (bool selectionOnly)
 			API_ElementQuantity q {};
 			API_Quantities quantities;
 			quantities.elements = &q;
-			API_QuantitiesMask mask;
-			ACAPI_ELEMENT_QUANTITY_MASK_SETFULL (mask);
+			API_QuantitiesMask mask = QuantityMask (t);
+			++structCount;
 			const bool hasQ = ACAPI_Element_GetQuantities (g, nullptr, &quantities, &mask) == NoError;
 			if (!hasQ) continue;
 			double cx = 0.0, cy = 0.0;
@@ -370,6 +414,7 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		eparts.Push (e);
 	}
 	model.Set ("elementParts", eparts);
+	Log::Stage ("modeli: mure, pllaka, kulme, kolona, trare, shkalle", structCount);
 	return model;
 }
 

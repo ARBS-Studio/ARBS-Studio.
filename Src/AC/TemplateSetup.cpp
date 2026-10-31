@@ -17,9 +17,15 @@ namespace AC {
 GSErrCode TemplateSetup::RunCommand (const char* name, const std::function<GSErrCode ()>& fn)
 {
 	// funksionet "non-undoable data structure modifier" thirren ne nje komande pa undo
+	Log::Stage (std::string ("komanda e Archicad-it: ") + name);
 	GSErrCode err = ACAPI_CallCommand (ToUni (name), fn);
-	if (err == APIERR_REFUSEDCMD)		// jemi tashme brenda nje komande
+	if (err == APIERR_REFUSEDCMD) {
+		// Archicad-i refuzoi te hapte komanden (jemi tashme brenda nje komande, ose nje add-on tjeter
+		// ka nje operacion te hapur). Sjellja e meparshme ruhet, por regjistrohet ne log per diagnostike.
+		Log::Stage (std::string ("APIERR_REFUSEDCMD per ") + name + " - ekzekutim i drejtperdrejte");
 		err = fn ();
+	}
+	Log::Stage (std::string ("komanda u krye: ") + name + " (kodi " + std::to_string (static_cast<long long> (err)) + ")");
 	return err;
 }
 
