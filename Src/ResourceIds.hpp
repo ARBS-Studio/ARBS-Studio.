@@ -31,10 +31,10 @@
 // Developer ID dhe Local ID qe merrni. Vlerat 1/1 punojne vetem ne DEMO.
 // -----------------------------------------------------------------------------
 #ifndef ARBS_MDID_DEVELOPER
-#define ARBS_MDID_DEVELOPER		1
+#define ARBS_MDID_DEVELOPER		1126387554
 #endif
 #ifndef ARBS_MDID_LOCAL
-#define ARBS_MDID_LOCAL			1
+#define ARBS_MDID_LOCAL			2155621591
 #endif
 
 #endif
