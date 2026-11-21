@@ -41,6 +41,22 @@ int main (int argc, char** argv)
 	Json::Value office = Json::Value::Parse (R"({
 		"kompania": "ARBS Studio", "arkitekti": "Emri Mbiemri", "titulli": "Arkitekt", "adresa": "Prishtinë, Kosovë",
 		"telefoni": "", "email": "", "web": "", "licenca": "" })");
+	if (argc > 3) {	// logoja opsionale (PNG) si data URI, si ne cilesimet e zyres
+		std::ifstream lf (argv[3], std::ios::binary);
+		const std::string bytes ((std::istreambuf_iterator<char> (lf)), std::istreambuf_iterator<char> ());
+		static const char* b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		std::string enc;
+		for (size_t i = 0; i < bytes.size (); i += 3) {
+			unsigned v = static_cast<unsigned char> (bytes[i]) << 16;
+			if (i + 1 < bytes.size ()) v |= static_cast<unsigned char> (bytes[i + 1]) << 8;
+			if (i + 2 < bytes.size ()) v |= static_cast<unsigned char> (bytes[i + 2]);
+			enc += b64[(v >> 18) & 63];
+			enc += b64[(v >> 12) & 63];
+			enc += i + 1 < bytes.size () ? b64[(v >> 6) & 63] : '=';
+			enc += i + 2 < bytes.size () ? b64[v & 63] : '=';
+		}
+		if (!enc.empty ()) office.Set ("logo", Json::Value ("data:image/png;base64," + enc));
+	}
 
 	Json::Value model = Json::Value::Parse (R"({
 		"stories": [ {"index": -1, "name": "Bodrumi", "level": -2.8}, {"index": 0, "name": "Përdhesa", "level": 0}, {"index": 1, "name": "Kati 1", "level": 3.2} ],
@@ -99,6 +115,14 @@ int main (int argc, char** argv)
 
 	BoqOptions bo;
 	for (const ReportOutput& r : Reports::QuantitiesAndCost (cat, project, office, model, bo)) Save (outDir, r);
+	{	// te dhenat per provat e redaktorit ne palete (arbs_palette.html me ARBSMock)
+		BoqOptions eo = bo;
+		eo.editor = true;
+		Json::Value ed = Json::Value::MakeObject ();
+		ed.Set ("prices", BillOfQuantities::PriceList (cat));
+		ed.Set ("editor", BillOfQuantities::ToJson (BillOfQuantities::Compute (cat, model, project, eo)));
+		Save (outDir, { "boq_editor.json", ed.Dump (), "application/json" });
+	}
 	const BoqResult br = BillOfQuantities::Compute (cat, model, project, bo);
 	std::printf ("Parallogaria: punimet %s EUR, pa TVSH %s EUR, me TVSH %s EUR, %s EUR/m2 BTS\n", BillOfQuantities::Money (br.works).c_str (),
 				 BillOfQuantities::Money (br.net).c_str (), BillOfQuantities::Money (br.total).c_str (), BillOfQuantities::Money (br.perM2).c_str ());

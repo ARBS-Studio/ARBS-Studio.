@@ -280,7 +280,6 @@ Json::Value ModelReader::Read (bool selectionOnly)
 	std::map<std::string, double> areaByCode;
 	std::map<std::string, std::string> nameByCode;
 	std::map<std::string, double> unknownByName;
-	std::map<Int32, bool> concreteCache;
 	std::map<std::string, double> elems;
 	// ndarja sipas bllokut: celesi "<blloku>|<0/1 nentoke>"
 	std::map<std::string, std::map<std::string, double>> compParts, elemParts;
@@ -298,24 +297,44 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		elems[key] += v;
 		elemParts[curPart][key] += v;
 	};
-	auto isConcrete = [&] (const API_AttributeIndex& idx) -> bool {
-		const Int32 key = idx.ToInt32_Deprecated ();
-		auto it = concreteCache.find (key);
-		if (it != concreteCache.end ()) return it->second;
+	// emrat e atributeve (materiali i ndertimit, profili) me cache
+	std::map<std::string, std::string> attrNameCache;
+	auto attrName = [&] (API_AttrTypeID type, const API_AttributeIndex& idx) -> std::string {
+		const std::string key = std::to_string (static_cast<int> (type)) + ":" + std::to_string (idx.ToInt32_Deprecated ());
+		auto it = attrNameCache.find (key);
+		if (it != attrNameCache.end ()) return it->second;
 		API_Attribute a {};
 		GS::UniString n;
-		a.header.typeID = API_BuildingMaterialID;
+		a.header.typeID = type;
 		a.header.index = idx;
 		a.header.uniStringNamePtr = &n;
-		bool conc = false;
-		if (ACAPI_Attribute_Get (&a) == NoError) {
-			std::string low = ToUtf8 (n);
-			for (char& c : low) c = static_cast<char> (std::tolower (static_cast<unsigned char> (c)));
-			conc = low.find ("concrete") != std::string::npos || low.find ("beton") != std::string::npos || low.find ("b/a") != std::string::npos;
-		}
-		concreteCache[key] = conc;
-		return conc;
+		const std::string name = (ACAPI_Attribute_Get (&a) == NoError) ? ToUtf8 (n) : std::string ();
+		attrNameCache[key] = name;
+		return name;
 	};
+	auto lowerOf = [] (std::string s) {
+		for (char& c : s) c = static_cast<char> (std::tolower (static_cast<unsigned char> (c)));
+		return s;
+	};
+	auto isConcrete = [&] (const API_AttributeIndex& idx) -> bool {
+		const std::string low = lowerOf (attrName (API_BuildingMaterialID, idx));
+		return low.find ("concrete") != std::string::npos || low.find ("beton") != std::string::npos || low.find ("b/a") != std::string::npos;
+	};
+	auto isParapet = [&] (const std::string& text) {
+		const std::string low = lowerOf (text);
+		return low.find ("atik") != std::string::npos || low.find ("parapet") != std::string::npos;
+	};
+	// elementet pa pozicion ne paramase ("Pune te ndryshme"): emri -> lloji, siperfaqja, vellimi
+	struct MiscQ { std::string kind; double a = 0.0, v = 0.0; };
+	std::map<std::string, std::map<std::string, MiscQ>> miscParts;	// pjesa -> emri -> sasite
+	auto addMisc = [&] (const std::string& name, const std::string& kind, double a, double v) {
+		MiscQ& m = miscParts[curPart][kind + "|" + name];
+		m.kind = kind;
+		m.a += a;
+		m.v += v;
+	};
+	// pllakat bazike sipas katit: ne fund ndahen ne pllake ne toke / meskat / kulm
+	std::map<std::string, std::map<int, std::pair<double, double>>> slabByStory;	// pjesa -> kati -> (v, a)
 	const API_ElemTypeID structTypes[] = { API_WallID, API_SlabID, API_RoofID, API_ColumnID, API_BeamID };
 	long long structCount = 0;
 	for (API_ElemTypeID t : structTypes) {
@@ -335,17 +354,45 @@ Json::Value ModelReader::Read (bool selectionOnly)
 			curPart = block + (el.header.floorInd < 0 ? "|1" : "|0");
 			if (t == API_WallID) {
 				const double area = std::max (q.wall.surface1, q.wall.surface2);
+				const bool parapet = isParapet (ElementId (g));
 				if (el.wall.modelElemStructureType == API_CompositeStructure) addComposite (el.wall.composite, area);
 				else if (el.wall.modelElemStructureType == API_BasicStructure) {
-					const char* k = isConcrete (el.wall.buildingMaterial) ? "conc" : "mas";
-					addElem ((std::string ("E:wall:") + k + ":v").c_str (), q.wall.volume);
-					addElem ((std::string ("E:wall:") + k + ":a").c_str (), area);
+					const bool conc = isConcrete (el.wall.buildingMaterial);
+					if (parapet || isParapet (attrName (API_BuildingMaterialID, el.wall.buildingMaterial))) {
+						addElem (conc ? "E:atika:conc:v" : "E:atika:mas:v", q.wall.volume);
+						addElem (conc ? "E:atika:conc:a" : "E:atika:mas:a", area);
+					} else {
+						const char* k = conc ? "conc" : "mas";
+						addElem ((std::string ("E:wall:") + k + ":v").c_str (), q.wall.volume);
+						addElem ((std::string ("E:wall:") + k + ":a").c_str (), area);
+						if (!conc) {
+							// murimi sipas trashesise (cm)
+							const int cm = static_cast<int> (std::lround (el.wall.thickness * 100.0));
+							addElem (("E:wall:mas:d" + std::to_string (cm) + ":a").c_str (), area);
+						}
+					}
+				} else if (el.wall.modelElemStructureType == API_ProfileStructure) {
+					const std::string pname = attrName (API_ProfileID, el.wall.profileAttr);
+					if (parapet || isParapet (pname)) {
+						addElem ("E:atika:conc:v", q.wall.volume);
+						addElem ("E:atika:conc:a", area);
+					} else {
+						addMisc (pname.empty () ? std::string ("Profil") : pname, "Mur me profil", area, q.wall.volume);
+					}
 				}
 			} else if (t == API_SlabID) {
 				if (el.slab.modelElemStructureType == API_CompositeStructure) addComposite (el.slab.composite, q.slab.topSurface);
 				else if (el.slab.modelElemStructureType == API_BasicStructure) {
-					addElem ("E:slab:conc:v", q.slab.volume);
-					addElem ("E:slab:conc:a", q.slab.topSurface);
+					if (isConcrete (el.slab.buildingMaterial)) {
+						addElem ("E:slab:conc:v", q.slab.volume);
+						addElem ("E:slab:conc:a", q.slab.topSurface);
+						auto& sv = slabByStory[curPart][static_cast<int> (el.header.floorInd)];
+						sv.first += q.slab.volume;
+						sv.second += q.slab.topSurface;
+					} else {
+						const std::string mname = attrName (API_BuildingMaterialID, el.slab.buildingMaterial);
+						addMisc (mname.empty () ? std::string ("Material") : mname, "Pllak\xC3\xAB", q.slab.topSurface, q.slab.volume);
+					}
 				}
 			} else if (t == API_RoofID) {
 				if (el.roof.shellBase.modelElemStructureType == API_CompositeStructure) addComposite (el.roof.shellBase.composite, q.roof.topSurface);
@@ -367,6 +414,35 @@ Json::Value ModelReader::Read (bool selectionOnly)
 		curPart = (Center (el.header, &cx, &cy) ? Structure::BlockAt (blocks, cx, cy) : std::string ()) + (el.header.floorInd < 0 ? "|1" : "|0");
 		addElem ("E:stair:n", 1.0);
 	}
+	// pllakat bazike b/a: kati me i ulet = pllake ne toke, kati me i larte = pllake kulmi, tjerat = meskat
+	{
+		int lowest = 1000, highest = -1000;
+		for (const auto& part : slabByStory)
+			for (const auto& st : part.second) { lowest = std::min (lowest, st.first); highest = std::max (highest, st.first); }
+		for (const auto& part : slabByStory) {
+			curPart = part.first;
+			for (const auto& st : part.second) {
+				const char* k = st.first == lowest ? "ground" : (st.first == highest ? "roof" : "mid");
+				addElem ((std::string ("E:slab:conc:") + k + ":v").c_str (), st.second.first);
+				addElem ((std::string ("E:slab:conc:") + k + ":a").c_str (), st.second.second);
+			}
+		}
+	}
+	Json::Value misc = Json::Value::MakeArray ();
+	for (const auto& part : miscParts) {
+		const size_t bar = part.first.rfind ('|');
+		for (const auto& kv : part.second) {
+			Json::Value m = Json::Value::MakeObject ();
+			m.Set ("name", kv.first.substr (kv.first.find ('|') + 1));
+			m.Set ("kind", kv.second.kind);
+			m.Set ("area", std::round (kv.second.a * 100.0) / 100.0);
+			m.Set ("volume", std::round (kv.second.v * 1000.0) / 1000.0);
+			m.Set ("block", part.first.substr (0, bar));
+			m.Set ("below", part.first.substr (bar + 1) == "1");
+			misc.Push (m);
+		}
+	}
+	model.Set ("misc", misc);
 	Json::Value comps = Json::Value::MakeArray ();
 	for (const auto& kv : areaByCode) {
 		Json::Value c = Json::Value::MakeObject ();

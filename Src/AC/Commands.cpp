@@ -318,11 +318,78 @@ BoqOptions BoqOptionsFrom (const Json::Value& req)
 	return opt;
 }
 
+// zgjedhjet e paramases se projektit: grupet e fikura, pozicionet {on,u,q,p,props}, pozicionet e shtuara
+Json::Value CleanBoqSettings (const Json::Value& in)
+{
+	Json::Value s = Json::Value::MakeObject ();
+	Json::Value off = Json::Value::MakeArray ();
+	for (const Json::Value& g : in["off_groups"].AsArray ()) if (g.IsString ()) off.Push (g);
+	s.Set ("off_groups", off);
+	Json::Value items = Json::Value::MakeObject ();
+	if (in["items"].IsObject ())
+		for (const auto& kv : in["items"].AsObject ()) {
+			const Json::Value& v = kv.second;
+			Json::Value o = Json::Value::MakeObject ();
+			if (v["on"].IsBool () && !v["on"].AsBool ()) o.Set ("on", false);
+			if (v["u"].IsString () && !v["u"].AsString ().empty ()) o.Set ("u", v["u"]);
+			if (v["q"].IsNumber () && v["q"].AsNumber () >= 0.0) o.Set ("q", v["q"]);
+			if (v["p"].IsNumber () && v["p"].AsNumber () >= 0.0) o.Set ("p", v["p"]);
+			if (v["props"].IsObject () && !v["props"].AsObject ().empty ()) {
+				Json::Value pr = Json::Value::MakeObject ();
+				for (const auto& p : v["props"].AsObject ()) if (p.second.IsString ()) pr.Set (p.first, p.second);
+				o.Set ("props", pr);
+			}
+			if (!o.AsObject ().empty ()) items.Set (kv.first, o);
+		}
+	s.Set ("items", items);
+	Json::Value custom = Json::Value::MakeArray ();
+	for (const Json::Value& c : in["custom"].AsArray ()) {
+		if (!c.IsObject () || c.GetString ("d").empty ()) continue;
+		Json::Value o = Json::Value::MakeObject ();
+		o.Set ("id", c.GetString ("id", "c" + std::to_string (custom.Size () + 1)));
+		o.Set ("g", c.GetString ("g", "XX"));
+		o.Set ("d", c.GetString ("d"));
+		o.Set ("u", c.GetString ("u", "cop\xC3\xAB"));
+		o.Set ("q", std::max (0.0, c.GetNumber ("q")));
+		o.Set ("p", std::max (0.0, c.GetNumber ("p")));
+		o.Set ("on", c.GetBool ("on", true));
+		custom.Push (o);
+	}
+	s.Set ("custom", custom);
+	return s;
+}
+
+bool StoreBoqSettings (const Json::Value& settings)
+{
+	Json::Value p = ProjectStore::LoadProject ();
+	if (!p.IsObject ()) p = Json::Value::MakeObject ();
+	p.Set ("paramasa", CleanBoqSettings (settings));
+	return ProjectStore::SaveProject (p);
+}
+
+Json::Value CmdSaveBoqSettings (const Json::Value& req)
+{
+	if (!StoreBoqSettings (req["settings"])) return Fail ("Zgjedhjet e paramas\xC3\xABs nuk u ruajt\xC3\xABn n\xC3\xAB skedarin e projektit.");
+	Json::Value r = Ok ();
+	r.Set ("settings", ProjectStore::LoadProject ()["paramasa"]);
+	return r;
+}
+
 Json::Value CmdBillOfQuantities (const Json::Value& req)
 {
+	// zgjedhjet nga redaktori ruhen para llogaritjes (nje thirrje e vetme nga paleta)
+	if (req["settings"].IsObject () && !StoreBoqSettings (req["settings"]))
+		return Fail ("Zgjedhjet e paramas\xC3\xABs nuk u ruajt\xC3\xABn n\xC3\xAB skedarin e projektit.");
 	const Json::Value project = ProjectForReports ();
 	const Json::Value model = ModelReader::Read (false);
 	const BoqOptions opt = BoqOptionsFrom (req);
+	if (opt.editor) {
+		// redaktori: i gjithe modeli si nje liste, me pozicionet e fikura
+		Json::Value r = Ok ();
+		r.Set ("editor", BillOfQuantities::ToJson (BillOfQuantities::Compute (GetCatalog (), model, project, opt)));
+		r.Set ("settings", project["paramasa"].IsObject () ? project["paramasa"] : Json::Value::MakeObject ());
+		return r;
+	}
 	const auto parts = BillOfQuantities::ComputeParts (GetCatalog (), model, project, opt);
 	const Json::Value pj = BillOfQuantities::PartsToJson (parts, model);
 	Json::Value r = req.GetBool ("export", true)
@@ -582,6 +649,7 @@ std::string Commands::Handle (const std::string& request)
 		{ "buildingPhysics", CmdBuildingPhysics },
 		{ "billOfQuantities", CmdBillOfQuantities },
 		{ "savePrices", CmdSavePrices },
+		{ "saveBoqSettings", CmdSaveBoqSettings },
 		{ "units", CmdUnits },
 		{ "structureInfo", CmdStructureInfo },
 		{ "modelSummary", CmdModelSummary },

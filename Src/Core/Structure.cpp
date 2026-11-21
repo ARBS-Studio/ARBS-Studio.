@@ -261,7 +261,7 @@ std::vector<std::pair<std::string, Json::Value>> Structure::SplitModel (const Js
 		Json::Value p = Json::Value::MakeObject ();
 		p.Set ("part", code);
 		p.Set ("north", model["north"]);
-		for (const char* key : { "zones", "openings", "objects", "composites", "unitZones", "entrances" }) p.Set (key, Json::Value::MakeArray ());
+		for (const char* key : { "zones", "openings", "objects", "composites", "unitZones", "entrances", "misc" }) p.Set (key, Json::Value::MakeArray ());
 		p.Set ("elements", Json::Value::MakeObject ());
 		Json::Value own = Json::Value::MakeArray ();
 		for (const Json::Value& b : blocks.AsArray ()) if (b.GetString ("code") == code) own.Push (b);
@@ -298,6 +298,8 @@ std::vector<std::pair<std::string, Json::Value>> Structure::SplitModel (const Js
 			c.Set ("area", std::round (ca.second * 10.0) / 10.0);
 			m[kv.first]["composites"].Push (c);
 		}
+	for (const Json::Value& mi : model["misc"].AsArray ())
+		m[PartOf (mi.GetString ("block"), mi.GetBool ("below") ? -1 : 0, true, opt.sharedBasement)]["misc"].Push (mi);
 	for (const Json::Value& e : model["elementParts"].AsArray ()) {
 		const std::string part = PartOf (e.GetString ("block"), e.GetBool ("below") ? -1 : 0, true, opt.sharedBasement);
 		Json::Value& dst = m[part]["elements"];

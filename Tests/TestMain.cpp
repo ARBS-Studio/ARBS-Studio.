@@ -245,10 +245,14 @@ static void TestBoq (const Catalog& cat)
 	CHECK_NEAR (r.total, r.net * 1.18, 0.02);
 	CHECK_NEAR (r.perM2, r.net / 100.0, 0.01);
 	auto outs = Reports::QuantitiesAndCost (cat, project, Json::Value::MakeObject (), model, opt);
-	CHECK (outs.size () == 4);
-	CHECK (outs[0].content.find ("REKAPITULIMI") != std::string::npos || outs[0].content.find ("Rekapitulimi") != std::string::npos);
-	CHECK (outs[2].content.find ("3.800,00") == std::string::npos);	// paramasa per ofertim pa cmime
-	CHECK (outs[0].content.find ("3.800,00") != std::string::npos);
+	CHECK (outs.size () == 5);
+	CHECK (outs[0].fileName.find (".xlsx") != std::string::npos && outs[0].content.compare (0, 2, "PK") == 0);
+	CHECK (outs[0].content.find ("REKAPITULIMI") != std::string::npos);
+	CHECK (outs[0].content.find ("<f>ROUND(D") != std::string::npos);		// formula te gjalla
+	CHECK (outs[1].content.find ("Rekapitulimi") != std::string::npos);
+	CHECK (outs[3].content.find ("3.800,00") == std::string::npos);	// paramasa per ofertim pa cmime
+	CHECK (outs[1].content.find ("3.800,00") != std::string::npos);
+	CHECK (outs[4].fileName.find ("ofertim.xlsx") != std::string::npos);
 	std::printf ("  punimet %s EUR, gjithsej me TVSH %s EUR\n", BillOfQuantities::Money (r.works).c_str (), BillOfQuantities::Money (r.total).c_str ());
 }
 
@@ -323,9 +327,11 @@ static void TestStructure (const Catalog& cat)
 		CHECK (bp[2].second.quantities.at ("EXC:v") > 0.0);
 	}
 	const auto outs = Reports::QuantitiesAndCost (cat, project, Json::Value::MakeObject (), model, opt);
-	CHECK (outs.size () == 7);
-	CHECK (outs[0].content.find ("Rekapitulimi i projektit sipas blloqeve") != std::string::npos);
-	CHECK (outs[0].content.find ("Kostoja sipas nj") != std::string::npos);
+	CHECK (outs.size () == 8);
+	CHECK (outs[0].content.find ("name=\"Rekapitulimi\"") != std::string::npos);
+	CHECK (outs[0].content.find ("'!F") != std::string::npos);			// referenca ne fletet e blloqeve
+	CHECK (outs[1].content.find ("Rekapitulimi i projektit sipas blloqeve") != std::string::npos);
+	CHECK (outs[1].content.find ("Kostoja sipas nj") != std::string::npos);
 	const auto us = Reports::UnitSchedule (project, Json::Value::MakeObject (), model);
 	CHECK (us.size () == 3 && us[0].content.find ("B1-H1-4") != std::string::npos);
 	CHECK (!Reports::BlocksChapter (project, model).empty ());

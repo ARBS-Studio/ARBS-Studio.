@@ -93,6 +93,30 @@
   input.pr.chg { border-color: var(--green); background: var(--green-soft); }
   .tot { font-size: 15px; font-weight: 700; color: var(--green); }
   .files a { display: block; color: var(--green); cursor: pointer; text-decoration: underline; font-size: 11px; word-break: break-all; }
+  /* redaktori i paramases */
+  .edbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 8px; }
+  .edbar .tot { margin-left: auto; font-size: 13px; }
+  .eg { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 5px; background: var(--card); }
+  .egh { display: flex; align-items: center; gap: 6px; padding: 5px 7px; cursor: pointer; }
+  .egh b { flex: 1; min-width: 0; font-size: 11.5px; color: var(--navy); }
+  .egh .money { font-size: 11px; white-space: nowrap; }
+  .eg.off > .egh b, .el.off .elh .d { text-decoration: line-through; opacity: .55; }
+  .egb { border-top: 1px solid var(--line); padding: 3px 7px 6px; }
+  .el { border-bottom: 1px dotted var(--line); padding: 4px 0; }
+  .el:last-of-type { border-bottom: none; }
+  .elh { display: flex; align-items: flex-start; gap: 5px; }
+  .elh .c { color: var(--muted); font-size: 10.5px; min-width: 34px; padding-top: 1px; }
+  .elh .d { flex: 1; min-width: 0; font-size: 11px; }
+  .elh .v { font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .elc { display: flex; align-items: center; gap: 4px; margin: 3px 0 0 22px; flex-wrap: wrap; font-size: 11px; color: var(--muted); }
+  .elc input[type=number] { width: 78px; padding: 2px 4px; text-align: right; }
+  .elc select { width: auto; padding: 2px 3px; }
+  .elc input.chg, .elc select.chg, .elp .chg { border-color: var(--green); background: var(--green-soft); }
+  .elc a, .eg a.add { color: var(--green); cursor: pointer; font-size: 11px; }
+  .elp { display: grid; grid-template-columns: auto 1fr; gap: 3px 6px; margin: 4px 0 0 22px; font-size: 11px; align-items: center; }
+  .elp select, .elp input { padding: 2px 4px; }
+  .el.cu input.dsc { width: 100%; padding: 2px 4px; }
+  .stale { color: var(--warn); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -141,7 +165,7 @@
   }
   // Radha e vetme: thirrjet drejt Archicad-it kalojne nje nga nje (asnjehere dy njekohesisht),
   // secila me kufi kohor; "Liro paletën" e zhbllokon paleten pa pritur pergjigjen.
-  const TIMEOUT = { init: 60, pending: 15, log: 15, clientLog: 10, open: 20, saveOffice: 30, saveProject: 60, savePrices: 30 };
+  const TIMEOUT = { init: 60, pending: 15, log: 15, clientLog: 10, open: 20, saveOffice: 30, saveProject: 60, savePrices: 30, saveBoqSettings: 30 };
   const QUEUE = { chain: Promise.resolve(), epoch: 0, current: null, started: 0 };
   function rawCall (cmd, data) {
     const req = JSON.stringify(Object.assign({ cmd: cmd }, data || {}));
@@ -370,8 +394,10 @@
       let h = '<h2>Paramasa dhe parallogaria</h2><p class="sub">Sasitë nga modeli (kompozitat ARBS sipas shtresave, kolonat, trarët, elementet bazike, zonat, dyert dhe dritaret) × çmimet njësi të tregut në Kosovë' + (pl.priceLevel ? ' (' + esc(pl.priceLevel) + ')' : '') + '.</p>';
       h += '<div class="card"><h3>Parametrat</h3><div class="row"><label class="f"><span>TVSH (%)</span><input type="number" step="any" id="bqVat" value="' + esc(b.vat) + '"></label><label class="f"><span>Të paparashikuarat (%)</span><input type="number" step="any" id="bqCont" value="' + esc(b.contingency) + '"></label><label class="f"><span>Koeficienti i çmimeve</span><input type="number" step="0.01" id="bqFac" value="' + esc(b.factor) + '"></label></div>';
       h += '<label class="chk"><input type="checkbox" id="bqZero"' + (b.includeZero ? ' checked' : '') + '><span>Shfaq edhe pozicionet me sasi 0<small>p.sh. për t\'i plotësuar me dorë në Word/Excel</small></span></label>';
-      h += '<p class="note">Dokumentet: parallogaria (HTML + Word), paramasa për ofertim pa çmime (Word) dhe tabela CSV për Excel. Emërtoni kompozitat me kodin ARBS (p.sh. «MJ-01 …») që sasitë e shtresave të njihen.</p>';
-      h += '<div class="btns"><button class="b" id="mkBoq">Gjenero paramasën dhe parallogarinë</button><button class="b s" id="prevBoq">Vetëm llogarit</button></div></div><div id="boqOut"></div>';
+      h += '<p class="note">Dokumentet: <b>Excel (.xlsx) me formula të gjalla</b> (shumat, totalet e grupeve, rekapitulimi, TVSH; për blloqe një fletë për secilin bllok + rekapitulimi), parallogaria (HTML + Word) dhe paramasa për ofertim pa çmime (Word + Excel). Emërtoni kompozitat me kodin ARBS (p.sh. «MJ-01 …») që sasitë e shtresave të njihen.</p>';
+      h += '<div class="btns"><button class="b" id="mkBoq">Krijo Excel-in dhe dokumentet</button><button class="b s" id="prevBoq">Vetëm llogarit</button></div></div>';
+      h += '<div class="card"><h3>Redaktori i pozicioneve</h3><p class="note">Zgjidhni grupet dhe pozicionet që hyjnë në paramasë, korrigjoni sasinë (bosh = sasia nga modeli), njësinë, çmimin (bosh = çmimi i listës) dhe veçoritë (klasa e betonit, profili i dritares, prodhuesi…) që shtohen në përshkrim dhe ndryshojnë çmimin. Shtoni pozicione me dorë. Zgjedhjet ruhen te projekti.</p>';
+      h += '<div class="btns"><button class="b s" id="edLoad">' + (S.boqEd ? 'Rillogarit nga modeli' : 'Hap redaktorin (lexon modelin)') + '</button>' + (S.boqEd ? '<button class="b s" id="edSave">Ruaj zgjedhjet</button><button class="b s" id="edReset">Pastro zgjedhjet</button>' : '') + '</div><div id="boqEd"></div></div><div id="boqOut"></div>';
       h += '<div class="card"><h3>Lista e çmimeve njësi (€ pa TVSH)</h3><p class="note">' + esc(pl.source || '') + ' Çmimet që ndryshoni ruhen në profilin e zyrës dhe vlejnë për të gjitha projektet.</p>';
       (pl.groups || []).forEach(function (g) {
         const items = (pl.items || []).filter(function (it) { return it.g === g.id; });
@@ -621,8 +647,15 @@
       function params (exp) {
         const p = { vat: Number($('bqVat').value), contingency: Number($('bqCont').value), factor: Number($('bqFac').value) || 1, includeZero: $('bqZero').checked };
         S.boqParams = p;
-        return Object.assign({ export: exp }, p);
+        const o = Object.assign({ export: exp }, p);
+        if (S.boqEd && S.boqEd.dirty) o.settings = S.boqEd.set;	// zgjedhjet e paruajtura ruhen bashke me llogaritjen
+        return o;
       }
+      function afterSave (r) {
+        if (r && r.ok && S.boqEd) { S.boqEd.dirty = false; S.project.paramasa = JSON.parse(JSON.stringify(S.boqEd.set)); }
+        return r;
+      }
+      bindEditor(params);
       function show (r) {
         if (!r || !r.ok || !r.boq) return;
         const x = r.boq;
@@ -643,8 +676,8 @@
         $('boqOut').innerHTML = h;
         document.querySelectorAll('.bqg').forEach(function (r) { r.onclick = function () { $('bql' + r.getAttribute('data-g')).classList.toggle('hide'); }; });
       }
-      $('mkBoq').onclick = function () { run('billOfQuantities', params(true), 'Paramasa dhe parallogaria u gjeneruan').then(show); };
-      $('prevBoq').onclick = function () { run('billOfQuantities', params(false), 'Parallogaria u llogarit').then(show); };
+      $('mkBoq').onclick = function () { run('billOfQuantities', params(true), 'Paramasa dhe parallogaria u gjeneruan').then(afterSave).then(show); };
+      $('prevBoq').onclick = function () { run('billOfQuantities', params(false), 'Parallogaria u llogarit').then(afterSave).then(show); };
       document.querySelectorAll('[data-price]').forEach(function (i) { i.oninput = function () { i.classList.toggle('chg', i.value !== ''); }; });
       function collect () { const o = {}; document.querySelectorAll('[data-price]').forEach(function (i) { if (i.value !== '' && !isNaN(Number(i.value))) o[i.getAttribute('data-price')] = Number(i.value); }); return o; }
       $('savePr').onclick = function () {
@@ -707,6 +740,180 @@
     }
   };
 
+  // ---------------------------------------------------------------- redaktori i paramases
+  // S.boqEd = { data: rezultati nga C++ (editor:true), set: zgjedhjet {off_groups, items, custom}, open: {grupi: true}, dirty, stale }
+  function edSettings (x) {
+    const s = JSON.parse(JSON.stringify(x || {}));
+    if (!Array.isArray(s.off_groups)) s.off_groups = [];
+    if (!s.items || typeof s.items !== 'object') s.items = {};
+    if (!Array.isArray(s.custom)) s.custom = [];
+    return s;
+  }
+  function edItem (key, create) {
+    const it = S.boqEd.set.items;
+    if (!it[key] && create) it[key] = {};
+    return it[key] || {};
+  }
+  function edClean (key) {
+    const it = S.boqEd.set.items[key];
+    if (!it) return;
+    if (it.props && !Object.keys(it.props).length) delete it.props;
+    if (!Object.keys(it).length) delete S.boqEd.set.items[key];
+  }
+  function edLineVals (l) {
+    const it = edItem(l.key, false);
+    const on = it.on !== false;
+    const q = typeof it.q === 'number' ? it.q : (it.u && it.u !== l.unit ? null : (l.qtyOverridden ? l.modelQty : l.qty));
+    const p = typeof it.p === 'number' ? it.p : l.price;
+    return { on: on, q: q, p: p, v: q == null ? null : Math.round(q * p * 100) / 100 };
+  }
+  function edRender () {
+    const E = S.boqEd, box = $('boqEd');
+    if (!E || !box) return;
+    const set = E.set, ps = ((S.catalog || {}).prices || {}).propSets || {};
+    const groupsCat = ((S.catalog || {}).prices || {}).groups || [];
+    const byId = {};
+    E.data.groups.forEach(function (g) { byId[g.id] = g; });
+    let all = 0, h = '';
+    groupsCat.forEach(function (gc) {
+      const g = byId[gc.id];
+      const customs = set.custom.filter(function (c) { return c.g === gc.id; });
+      if (!g && !customs.length) return;
+      const lines = g ? g.lines.filter(function (l) { return !l.custom; }) : [];
+      const gOn = set.off_groups.indexOf(gc.id) < 0;
+      let sum = 0, nOn = 0;
+      lines.forEach(function (l) { const v = edLineVals(l); if (v.on) { nOn++; sum += v.v || 0; } });
+      customs.forEach(function (c) { if (c.on !== false) { nOn++; sum += (Number(c.q) || 0) * (Number(c.p) || 0); } });
+      if (gOn) all += sum;
+      const open = !!E.open[gc.id];
+      h += '<div class="eg' + (gOn ? '' : ' off') + '"><div class="egh" data-egt="' + esc(gc.id) + '"><input type="checkbox" data-eg="' + esc(gc.id) + '"' + (gOn ? ' checked' : '') + '><b>' + (open ? '▾ ' : '▸ ') + esc(gc.id + '. ' + gc.name) + '</b><span class="note">' + nOn + '/' + (lines.length + customs.length) + '</span><span class="money">' + money(sum) + ' €</span></div>';
+      if (open) {
+        h += '<div class="egb">';
+        lines.forEach(function (l) {
+          const it = edItem(l.key, false), v = edLineVals(l);
+          h += '<div class="el' + (v.on ? '' : ' off') + '"><div class="elh"><input type="checkbox" data-el="' + esc(l.key) + '"' + (v.on ? ' checked' : '') + '><span class="c">' + esc(l.code) + (l.estimated ? '*' : '') + '</span><span class="d">' + esc(l.desc) + '</span><span class="v">' + (v.v == null ? '…' : money(v.v)) + '</span></div>';
+          h += '<div class="elc"><input type="number" step="any" min="0" data-q="' + esc(l.key) + '" class="' + (typeof it.q === 'number' ? 'chg' : '') + '" placeholder="' + esc(num(l.modelQty, 2)) + '" value="' + (typeof it.q === 'number' ? esc(it.q) : '') + '" title="Bosh = sasia nga modeli (' + esc(num(l.modelQty, 2)) + ')">';
+          const units = l.units && l.units.length ? l.units : [l.unit];
+          if (units.length > 1) h += '<select data-u="' + esc(l.key) + '" class="' + (it.u ? 'chg' : '') + '">' + units.map(function (u) { return '<option' + (u === (it.u || l.unit) ? ' selected' : '') + '>' + esc(u) + '</option>'; }).join('') + '</select>';
+          else h += '<span>' + esc(l.unit) + '</span>';
+          h += '<span>×</span><input type="number" step="0.01" min="0" data-p="' + esc(l.key) + '" class="' + (typeof it.p === 'number' ? 'chg' : '') + '" placeholder="' + esc(num(l.price, 2)) + '" value="' + (typeof it.p === 'number' ? esc(it.p) : '') + '" title="Bosh = çmimi i listës / zyrës"><span>€</span>';
+          if (l.ps && ps[l.ps]) h += '<a data-pt="' + esc(l.key) + '">Veçoritë' + (it.props ? ' •' : '') + '</a>';
+          h += '</div>';
+          if (l.ps && ps[l.ps] && E.props[l.key]) {
+            h += '<div class="elp">';
+            ps[l.ps].forEach(function (pg) {
+              const cur = (it.props && it.props[pg.id] != null) ? it.props[pg.id] : pg.def;
+              const chg = it.props && it.props[pg.id] != null ? ' class="chg"' : '';
+              h += '<span>' + esc(pg.name) + '</span>';
+              if (pg.free) {
+                h += '<input type="text" list="dl-' + esc(l.ps + '-' + pg.id) + '" data-pv="' + esc(l.key) + '" data-pid="' + esc(pg.id) + '"' + chg + ' value="' + esc(cur === '—' ? '' : cur) + '" placeholder="p.sh. emri i prodhuesit">' +
+                  '<datalist id="dl-' + esc(l.ps + '-' + pg.id) + '">' + (pg.opts || []).filter(function (o) { return o[0] !== '—'; }).map(function (o) { return '<option value="' + esc(o[0]) + '">'; }).join('') + '</datalist>';
+              } else {
+                h += '<select data-pv="' + esc(l.key) + '" data-pid="' + esc(pg.id) + '"' + chg + '>' + (pg.opts || []).map(function (o) {
+                  return '<option value="' + esc(o[0]) + '"' + (o[0] === cur ? ' selected' : '') + '>' + esc(o[0]) + (o[1] ? ' (' + (o[1] > 0 ? '+' : '') + num(o[1]) + ' €)' : '') + '</option>';
+                }).join('') + '</select>';
+              }
+            });
+            h += '</div>';
+          }
+          h += '</div>';
+        });
+        customs.forEach(function (c) {
+          const on = c.on !== false;
+          h += '<div class="el cu' + (on ? '' : ' off') + '"><div class="elh"><input type="checkbox" data-con="' + esc(c.id) + '"' + (on ? ' checked' : '') + '><span class="c">+</span><span class="d"><input type="text" class="dsc" data-cd="' + esc(c.id) + '" value="' + esc(c.d) + '" placeholder="Përshkrimi i pozicionit"></span><span class="v">' + money((Number(c.q) || 0) * (Number(c.p) || 0)) + '</span></div>';
+          h += '<div class="elc"><input type="number" step="any" min="0" data-cq="' + esc(c.id) + '" value="' + esc(c.q) + '"><input type="text" data-cu="' + esc(c.id) + '" value="' + esc(c.u) + '" style="width:52px;padding:2px 4px"><span>×</span><input type="number" step="0.01" min="0" data-cp="' + esc(c.id) + '" value="' + esc(c.p) + '"><span>€</span><a data-cx="' + esc(c.id) + '">Fshi</a></div></div>';
+        });
+        h += '<a class="add" data-add="' + esc(gc.id) + '">+ Shto pozicion në këtë grup</a></div>';
+      }
+      h += '</div>';
+    });
+    const bar = '<div class="edbar"><label class="chk" style="padding:0"><input type="checkbox" id="edAll"><span>Hap të gjitha grupet</span></label>' +
+      (E.dirty ? '<span class="badge w">ndryshime të paruajtura</span>' : '') + (E.stale ? '<span class="stale">Njësia/veçoritë ndryshuan – «Rillogarit nga modeli» për çmimin e saktë</span>' : '') +
+      '<span class="tot money">' + money(all) + ' €</span></div>';
+    box.innerHTML = bar + h + '<p class="note">Shuma është pa të paparashikuarat dhe TVSH. Pozicionet me * janë vlerësime; «Punë të ndryshme» (XX) janë elemente të modelit pa pozicion – vendosni çmimin ose fikini.</p>';
+    const allBox = $('edAll');
+    allBox.checked = groupsCat.every(function (g) { return !byId[g.id] || E.open[g.id]; });
+    allBox.onchange = function () { groupsCat.forEach(function (g) { E.open[g.id] = allBox.checked; }); edRender(); };
+  }
+  function bindEditor (params) {
+    const box = $('boqEd');
+    if (!box) return;
+    function changed (stale) { S.boqEd.dirty = true; if (stale) S.boqEd.stale = true; }
+    function load () {
+      const p = params(false);
+      const req = { editor: true, export: false, includeZero: p.includeZero, factor: p.factor, vat: p.vat, contingency: p.contingency };
+      if (S.boqEd && S.boqEd.dirty) req.settings = S.boqEd.set;
+      run('billOfQuantities', req, 'Redaktori u ngarkua nga modeli').then(function (r) {
+        if (!r || !r.ok || !r.editor) return;
+        const prev = S.boqEd;
+        S.boqEd = { data: r.editor, set: edSettings(r.settings), open: prev ? prev.open : {}, props: prev ? prev.props : {}, dirty: false, stale: false };
+        S.project.paramasa = edSettings(r.settings);
+        const st = $('main').scrollTop; open('boq'); $('main').scrollTop = st;
+      });
+    }
+    $('edLoad').onclick = load;
+    if ($('edSave')) $('edSave').onclick = function () {
+      run('saveBoqSettings', { settings: S.boqEd.set }, 'Zgjedhjet e paramasës u ruajtën').then(function (r) {
+        if (r && r.ok) { S.boqEd.set = edSettings(r.settings); S.boqEd.dirty = false; S.project.paramasa = edSettings(r.settings); edRender(); }
+      });
+    };
+    if ($('edReset')) $('edReset').onclick = function () {
+      S.boqEd.set = edSettings({}); changed(true); edRender();
+      status('Zgjedhjet u pastruan (ruhen me «Ruaj zgjedhjet» ose me gjenerimin).', 'ok');
+    };
+    if (!S.boqEd) return;
+    box.onclick = function (e) {
+      const t = e.target, E = S.boqEd;
+      if (t.matches('input, select, option, datalist')) return;
+      const a = t.closest('[data-pt],[data-add],[data-cx],[data-egt]');
+      if (!a) return;
+      if (a.hasAttribute('data-pt')) { const k = a.getAttribute('data-pt'); E.props[k] = !E.props[k]; edRender(); return; }
+      if (a.hasAttribute('data-add')) {
+        E.set.custom.push({ id: 'c' + Date.now().toString(36), g: a.getAttribute('data-add'), d: '', u: 'copë', q: 1, p: 0, on: true });
+        changed(false); edRender(); return;
+      }
+      if (a.hasAttribute('data-cx')) { const id = a.getAttribute('data-cx'); E.set.custom = E.set.custom.filter(function (c) { return c.id !== id; }); changed(false); edRender(); return; }
+      if (a.hasAttribute('data-egt')) { const g = a.getAttribute('data-egt'); E.open[g] = !E.open[g]; edRender(); }
+    };
+    box.onchange = function (e) {
+      const t = e.target, E = S.boqEd;
+      const cust = function (attr) { const id = t.getAttribute(attr); return E.set.custom.filter(function (c) { return c.id === id; })[0]; };
+      let k;
+      if ((k = t.getAttribute('data-eg')) != null) {
+        const i = E.set.off_groups.indexOf(k);
+        if (t.checked && i >= 0) E.set.off_groups.splice(i, 1);
+        if (!t.checked && i < 0) E.set.off_groups.push(k);
+        changed(false);
+      } else if ((k = t.getAttribute('data-el')) != null) {
+        const it = edItem(k, true); if (t.checked) delete it.on; else it.on = false; edClean(k); changed(false);
+      } else if ((k = t.getAttribute('data-q')) != null) {
+        const it = edItem(k, true); if (t.value === '' || isNaN(Number(t.value))) delete it.q; else it.q = Math.max(0, Number(t.value)); edClean(k); changed(false);
+      } else if ((k = t.getAttribute('data-p')) != null) {
+        const it = edItem(k, true); if (t.value === '' || isNaN(Number(t.value))) delete it.p; else it.p = Math.max(0, Number(t.value)); edClean(k); changed(false);
+      } else if ((k = t.getAttribute('data-u')) != null) {
+        const it = edItem(k, true); const line = edFind(k);
+        if (line && t.value === line.unit && !line.qtyOverridden) delete it.u; else it.u = t.value;
+        delete it.q; edClean(k); changed(true);
+      } else if ((k = t.getAttribute('data-pv')) != null) {
+        const it = edItem(k, true); const id = t.getAttribute('data-pid');
+        it.props = it.props || {};
+        if (t.value === '') delete it.props[id]; else it.props[id] = t.value;
+        edClean(k); changed(true);
+      } else if (t.hasAttribute('data-con')) { const c = cust('data-con'); if (c) c.on = t.checked; changed(false); }
+      else if (t.hasAttribute('data-cd')) { const c = cust('data-cd'); if (c) c.d = t.value; changed(false); }
+      else if (t.hasAttribute('data-cq')) { const c = cust('data-cq'); if (c) c.q = Math.max(0, Number(t.value) || 0); changed(false); }
+      else if (t.hasAttribute('data-cu')) { const c = cust('data-cu'); if (c) c.u = t.value || 'copë'; changed(false); }
+      else if (t.hasAttribute('data-cp')) { const c = cust('data-cp'); if (c) c.p = Math.max(0, Number(t.value) || 0); changed(false); }
+      else return;
+      const st = $('main').scrollTop; edRender(); $('main').scrollTop = st;
+    };
+    edRender();
+  }
+  function edFind (key) {
+    let f = null;
+    S.boqEd.data.groups.forEach(function (g) { g.lines.forEach(function (l) { if (l.key === key) f = l; }); });
+    return f;
+  }
   function money (v) { const n = Math.round((Number(v) || 0) * 100) / 100; const p = n.toFixed(2).split('.'); return p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + p[1]; }
   function fmt (iso) { if (!iso) return ''; const p = String(iso).split('-'); return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : iso; }
 

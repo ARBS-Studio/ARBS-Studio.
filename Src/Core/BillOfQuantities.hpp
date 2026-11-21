@@ -22,19 +22,30 @@ struct BoqOptions {
 	double contingency = 5.0;		// te paparashikuarat %
 	double factor = 1.0;			// koeficienti i cmimeve (rajoni, kategoria e kontraktorit)
 	bool   includeZero = false;		// shfaq edhe pozicionet me sasi 0
+	bool   editor = false;			// per redaktorin: kthen edhe pozicionet e fikura (on = false)
 	Json::Value overrides = Json::Value::MakeObject ();	// { "3.02": 125.0, ... } cmimet e zyres
 };
 
 struct BoqLine {
 	std::string code, group, unit, desc, source;
+	std::string key;				// celesi i zgjedhjeve te projektit ("3.02", "9.01|D1 120x150", "misc|...", "custom|c1")
+	std::string longDesc;			// pershkrimi i plote teknik (Word, Excel)
+	std::string propSet;			// grupi i vecorive ("beton", "bllok", "dritare" ...)
+	std::vector<std::pair<std::string, std::string>> props;	// vecorite e zgjedhura (emri, vlera)
+	std::vector<std::string> units;	// njesite e lejuara
 	double qty = 0.0, price = 0.0, value = 0.0;
+	double modelQty = 0.0;			// sasia nga modeli (para korrigjimit me dore)
 	double thicknessCm = 0.0;		// > 0 kur cmimi varet nga trashesia
 	bool   estimated = false;		// sasia nga vleresimi (termat "alt")
-	bool   overridden = false;		// cmim i ndryshuar nga zyra
+	bool   overridden = false;		// cmim i ndryshuar nga zyra ose projekti
+	bool   qtyOverridden = false;	// sasi e korrigjuar me dore
+	bool   on = true;				// e perfshire ne paramase
+	bool   custom = false;			// pozicion i shtuar me dore
 };
 
 struct BoqGroup {
 	std::string id, name;
+	bool   on = true;
 	double total = 0.0;
 	std::vector<BoqLine> lines;
 };
