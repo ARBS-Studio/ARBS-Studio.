@@ -237,11 +237,11 @@ static void ConfigureView (const API_Guid& viewGuid, const std::string& combinat
 	BMKillPtr (reinterpret_cast<GSPtr*> (&view.pens));
 }
 
-static Int32 PhaseScale (const std::string& phase, bool section)
+static Int32 PhaseScale (const std::string& phase, bool /*section*/)
 {
 	if (phase == "PK") return 200;
 	if (phase == "PZ") return 50;
-	if (phase == "PKR") return section ? 50 : 100;
+	if (phase == "PKR") return 50;	// bazat, prerjet, dukjet 1:50 (UA MMPH 06/2017, Shtojca 8; UA 01/2019, Shtojca 9)
 	return 100;
 }
 

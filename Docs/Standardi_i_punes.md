@@ -8,7 +8,7 @@ Ky dokument përshkruan mënyrën e operimit dhe të emërtimit që krijon add-o
 |---|---|---|---|
 | **PK** | Projekti Konceptual | Kërkesa për **kushte ndërtimore** (Kat. I dhe II: UA MMPH Nr. 06/2017; Kat. III: MMPHI) | 1:200 / 1:500 |
 | **PI** | Projekti Ideor | **Leje ndërtimore për Kategorinë I** (Shtojca 2) – 3 kopje fizike + 1 digjitale | 1:100 |
-| **PKR** | Projekti Kryesor | **Leje ndërtimore për Kategorinë II** (Shtojca 3) dhe realizimi i ndërtimit (edhe për Kat. I) | 1:100 / 1:50 |
+| **PKR** | Projekti Kryesor | **Leje ndërtimore për Kategorinë II** (Shtojca 3) dhe realizimi i ndërtimit (edhe për Kat. I) | 1:50 (detajet 1:5–1:20) |
 | **PZ** | Projekti Zbatues | Realizimi në kantier, mbikëqyrja dhe ditari i ndërtimit (UA Nr. 15/2013); nuk është dokument për leje | 1:50 / 1:20 / 1:5 |
 
 Kategorizimi i ndërtimeve bëhet sipas UA (MMPH) Nr. 04/2017. Inspektimet e fazave dhe certifikata e përdorimit rregullohen me UA (MMPH) Nr. 05/2017.
@@ -57,7 +57,7 @@ Lista e plotë është në `Data/layers.json`.
 
 ## 4. View Map dhe Layout Book
 
-- **View Map:** krijohet një dosje për çdo fazë (`PI - Projekti Ideor` …). Brenda saj janë nëndosjet *Bazat, Prerjet, Pamjet, Detajet, 3D dhe perspektiva, Skemat dhe listat, Situacioni, Insolimi*. Katet, prerjet dhe pamjet klonohen nga Project Map me kombinimin dhe shkallën e fazës (PK 1:200, PI 1:100, PKR 1:100/1:50, PZ 1:50).
+- **View Map:** krijohet një dosje për çdo fazë (`PI - Projekti Ideor` …). Brenda saj janë nëndosjet *Bazat, Prerjet, Pamjet, Detajet, 3D dhe perspektiva, Skemat dhe listat, Situacioni, Insolimi*. Katet, prerjet dhe pamjet klonohen nga Project Map me kombinimin dhe shkallën e fazës (PK 1:200, PI 1:100, PKR 1:50, PZ 1:50).
 - **Layout Book:** për çdo fazë krijohet një subset (prefiksi `PI-`), brenda tij një subset për disiplinë (prefiksi `A`, numërim `01`) dhe fletat nga `Data/phases.json`. Fletat «për çdo kat» krijohen për secilin kat të projektit. Masterat janë `ARBS A4/A3/A2/A1 horizontale`, me buzë 20 mm majtas për lidhje.
 
 ## 5. Kompozitat e materialeve
