@@ -5,6 +5,9 @@
 
 #include "AC/ProjectStore.hpp"
 
+#include "File.hpp"
+#include "FileSystem.hpp"
+
 #include <ctime>
 
 namespace ARBS {
