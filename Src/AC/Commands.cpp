@@ -5,6 +5,7 @@
 
 #include "AC/ArbsUtils.hpp"
 #include "AC/CompositeBuilder.hpp"
+#include "AC/LicenseStore.hpp"
 #include "AC/ModelReader.hpp"
 #include "AC/ProjectStore.hpp"
 #include "AC/TemplateSetup.hpp"
@@ -149,12 +150,34 @@ Json::Value CmdInit (const Json::Value&)
 	r.Set ("plan", ProjectStore::LoadPlan ());
 	r.Set ("logo", LogoDataUri ());
 	r.Set ("folder", LocationToUtf8 (OutputFolder (ProjectStore::LoadProject ())));
+	r.Set ("license", LicenseStore::ToJson (LicenseStore::Current ()));
+	return r;
+}
+
+Json::Value CmdLicense (const Json::Value&)
+{
+	Json::Value r = Ok ();
+	r.Set ("license", LicenseStore::ToJson (LicenseStore::Current ()));
+	return r;
+}
+
+Json::Value CmdActivateLicense (const Json::Value& req)
+{
+	std::string err;
+	const LicenseStatus st = LicenseStore::Activate (req.GetString ("key"), &err);
+	Json::Value r = err.empty () ? Ok () : Fail (err);
+	r.Set ("license", LicenseStore::ToJson (st));
+	Log::Write (err.empty () ? "licenca u aktivizua: " + st.license.id + " deri " + st.license.to.ToIso () : "aktivizimi i licences deshtoi: " + err);
 	return r;
 }
 
 Json::Value CmdSaveOffice (const Json::Value& req)
 {
-	if (!ProjectStore::SaveOffice (req["office"])) return Fail ("Profili i zyr\xC3\xABs nuk u ruajt.");
+	// licenca ruhet ne te njejtat preferenca: nuk mbishkruhet nga profili i paletes
+	Json::Value office = req["office"].IsObject () ? req["office"] : Json::Value::MakeObject ();
+	const Json::Value lic = ProjectStore::LoadOffice ()[LicenseStore::OfficeKey ()];
+	if (lic.IsObject ()) office.Set (LicenseStore::OfficeKey (), lic);
+	if (!ProjectStore::SaveOffice (office)) return Fail ("Profili i zyr\xC3\xABs nuk u ruajt.");
 	return Ok ();
 }
 
@@ -659,7 +682,11 @@ std::string Commands::Handle (const std::string& request)
 		{ "pending", CmdPending },
 		{ "log", CmdLog },
 		{ "clientLog", CmdClientLog },
+		{ "license", CmdLicense },
+		{ "activateLicense", CmdActivateLicense },
 	};
+	// pa licence (ose pas skadimit te abonimit) lejohen vetem keto komanda
+	static const std::set<std::string> freeCmds = { "init", "license", "activateLicense", "pending", "log", "clientLog", "open" };
 	// Mbrojtje nga rihyrja: nje komande e vetme ne te njejten kohe.
 	static bool        running = false;
 	static std::string runningCmd;
@@ -676,6 +703,13 @@ std::string Commands::Handle (const std::string& request)
 			return result.Dump ();
 		}
 		auto it = handlers.find (cmd);
+		if (it != handlers.end () && freeCmds.count (cmd) == 0 && !LicenseStore::Current ().usable) {
+			Log::Write ("REFUZIM " + cmd + ": licenca mungon ose ka skaduar");
+			result = Fail ("Abonimi i ARBS Studio ka skaduar. P\xC3\xABr vazhdim: service@arbsstudio.com, Mob: +38345591070");
+			result.Set ("licenseRequired", true);
+			result.Set ("license", LicenseStore::ToJson (LicenseStore::Current ()));
+			return result.Dump ();
+		}
 		if (it == handlers.end ()) {
 			result = Fail ("Komand\xC3\xAB e panjohur: " + cmd);
 		} else if (quiet) {

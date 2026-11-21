@@ -93,6 +93,17 @@
   input.pr.chg { border-color: var(--green); background: var(--green-soft); }
   .tot { font-size: 15px; font-weight: 700; color: var(--green); }
   .files a { display: block; color: var(--green); cursor: pointer; text-decoration: underline; font-size: 11px; word-break: break-all; }
+  /* licenca */
+  #licBar { padding: 5px 12px; font-size: 11px; background: var(--warn-bg); color: var(--warn); border-bottom: 1px solid var(--line); cursor: pointer; }
+  #licBar.ok { background: var(--green-soft); color: var(--green); }
+  body.locked nav, body.locked #licBar { display: none; }
+  .lic { text-align: center; padding: 18px 6px 6px; }
+  .lic .lock { width: 46px; height: 46px; stroke: var(--green); fill: none; stroke-width: 1.6; }
+  .lic h2 { font-size: 15px; margin: 8px 0 4px; }
+  .contact { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 12px 0; text-align: left; }
+  .contact b { display: block; font-size: 13px; color: var(--navy); margin-bottom: 4px; }
+  .contact a { color: var(--green); }
+  textarea.key { font-family: Consolas, Menlo, monospace; font-size: 10.5px; min-height: 70px; word-break: break-all; }
   /* redaktori i paramases */
   .edbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 8px; }
   .edbar .tot { margin-left: auto; font-size: 13px; }
@@ -125,9 +136,10 @@
   <div class="t"><b>ARBS Studio</b><span id="projName">Archicad · Republika e Kosovës</span></div>
   <span class="ver" id="ver">v0.1</span>
 </header>
+<div id="licBar" class="hide"></div>
 <nav id="nav"></nav>
 <main id="main"></main>
-<footer><div class="msg" id="msg">Gati.</div><button id="openLog" title="Hap log-un diagnostik">Log</button><button id="openFolder" title="Hap dosjen e dokumenteve">Dosja</button></footer>
+<footer><div class="msg" id="msg">Gati.</div><button id="openLic" title="Licenca e abonimit">Licenca</button><button id="openLog" title="Hap log-un diagnostik">Log</button><button id="openFolder" title="Hap dosjen e dokumenteve">Dosja</button></footer>
 
 <script>
 (function () {
@@ -165,7 +177,7 @@
   }
   // Radha e vetme: thirrjet drejt Archicad-it kalojne nje nga nje (asnjehere dy njekohesisht),
   // secila me kufi kohor; "Liro paletën" e zhbllokon paleten pa pritur pergjigjen.
-  const TIMEOUT = { init: 60, pending: 15, log: 15, clientLog: 10, open: 20, saveOffice: 30, saveProject: 60, savePrices: 30, saveBoqSettings: 30 };
+  const TIMEOUT = { init: 60, pending: 15, log: 15, clientLog: 10, open: 20, saveOffice: 30, saveProject: 60, savePrices: 30, saveBoqSettings: 30, license: 15, activateLicense: 20 };
   const QUEUE = { chain: Promise.resolve(), epoch: 0, current: null, started: 0 };
   function rawCall (cmd, data) {
     const req = JSON.stringify(Object.assign({ cmd: cmd }, data || {}));
@@ -259,6 +271,7 @@
       if (epoch !== QUEUE.epoch) return null;		// paleta u lirua nderkohe
       S.busy = false;
       stopTicker();
+      if (r && r.licenseRequired) { status(esc(r.error || 'Licenca mungon.'), 'err'); S.license = r.license; licenseUi(); return null; }
       if (!r || !r.ok) { status(esc((r && r.error) || 'Gabim i panjohur.'), 'err'); return r; }
       status('U krye: ' + esc(label || cmd), 'ok');
       if (r.openFile) call('open', { path: r.openFile });	// dokumenti hapet pasi pergjigja te kete arritur
@@ -276,6 +289,8 @@
     if (a) { call('open', { path: a.getAttribute('data-open') }); }
   });
   $('openFolder').onclick = function () { call('open', {}); };
+  $('openLic').onclick = function () { open('license'); };
+  $('licBar').onclick = function () { open('license'); };
   $('openLog').onclick = function () { rawCall('log', { open: true }).then(function (r) { if (r && r.path) status('Log-u: ' + esc(r.path)); }); };
 
   // ---------------------------------------------------------------- navigimi
@@ -384,6 +399,24 @@
       h += '<div class="card"><h3>Përmbajtja</h3><div class="kv"><b>1–3</b><span>Të dhënat e përgjithshme, baza ligjore, lokacioni dhe treguesit urbanistikë</span><b>4</b><span>Zgjidhja funksionale – tabela e sipërfaqeve nga zonat</span><b>5–7</b><span>Konstruksioni, kompozitat e përdorura, dyert dhe dritaret</span><b>8</b><span>Performanca energjetike – U vs U<sub>max</sub></span><b>9–12</b><span>Zjarri, qasja, instalimet, mjedisi</span></div></div>';
       h += '<p class="note">Fushat që mungojnë shënohen me të verdhë në dokument. Plotësoni ato te «Projekti».</p>';
       h += '<div class="btns"><button class="b" id="mkTech">Gjenero përshkrimin teknik</button></div><div id="techOut"></div>';
+      return h;
+    },
+
+    license: function () {
+      const L = S.license || {}, c = L.contact || { name: 'ARBS Studio', email: 'service@arbsstudio.com', phone: '+38345591070' };
+      const usable = !!L.usable;
+      let title, text;
+      if (L.state === 'active') { title = 'Licenca aktive'; text = 'Abonimi vlen deri më <b>' + esc(L.to) + '</b> (edhe ' + L.daysLeft + ' ditë).'; }
+      else if (L.state === 'trial') { title = 'Periudha provuese'; text = 'Mund ta përdorni ARBS Studio falas edhe <b>' + L.daysLeft + ' ditë</b> (deri më ' + esc(L.trialEnd) + '). Për abonim vjetor kontaktoni ARBS Studio.'; }
+      else if (L.state === 'expired') { title = 'Abonimi ka skaduar'; text = 'Abonimi ' + (L.to ? 'ka skaduar më <b>' + esc(L.to) + '</b>' : 'ka skaduar') + '. Për ta vazhduar abonimin kontaktoni ARBS Studio; pas pagesës do të merrni çelësin e ri me email.'; }
+      else { title = 'Periudha provuese ka përfunduar'; text = 'Për ta përdorur ARBS Studio nevojitet abonimi vjetor. Kontaktoni ARBS Studio; pas pagesës do të merrni çelësin e licencës me email.'; }
+      let h = '<div class="lic"><svg class="lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>' + (usable ? '' : '<path d="M12 14.5v2.5"/>') + '</svg>';
+      h += '<h2>' + title + '</h2><p class="sub">' + text + '</p></div>';
+      if (L.state === 'active') h += '<div class="card"><div class="kv"><b>Klienti</b><span>' + esc(L.name) + '</span><b>Nr. i licencës</b><span>' + esc(L.id) + '</span><b>Vlen</b><span>' + esc(L.from) + ' – ' + esc(L.to) + '</span></div></div>';
+      h += '<div class="contact"><b>' + esc(c.name) + '</b>Email: <a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a><br>Mob: ' + esc(c.phone) + '<br><span class="note">Abonimi vlen 1 vit nga data e aktivizimit të licencës.</span></div>';
+      h += '<div class="card"><h3>' + (L.state === 'active' ? 'Vendos çelësin e ri (rinovimi)' : 'Aktivizo licencën') + '</h3><p class="note">Ngjitni të gjithë çelësin që keni marrë me email (fillon me «ARBS-»).</p>';
+      h += '<textarea class="key" id="licKey" placeholder="ARBS-…"></textarea>' + (L.keyError ? '<p class="note" style="color:var(--err)">' + esc(L.keyError) + '</p>' : '');
+      h += '<div class="btns"><button class="b" id="licAct">Aktivizo</button>' + (usable ? '<button class="b s" id="licBack">Kthehu te ARBS Studio</button>' : '') + '</div><div id="licOut"></div></div>';
       return h;
     },
 
@@ -642,6 +675,18 @@
     },
     techdesc: function () {
       $('mkTech').onclick = function () { run('technicalDescription', {}, 'Përshkrimi teknik u gjenerua').then(function (r) { if (r && r.ok) $('techOut').innerHTML = filesHtml(r); }); };
+    },
+    license: function () {
+      $('licAct').onclick = function () {
+        const key = $('licKey').value.trim();
+        if (!key) { status('Ngjitni çelësin e licencës.', 'err'); return; }
+        call('activateLicense', { key: key }).then(function (r) {
+          if (r && r.license) S.license = r.license;
+          if (r && r.ok) { status('Licenca u aktivizua: ' + esc(S.license.name || '') + ', deri më ' + esc(S.license.to || ''), 'ok'); licenseUi(true); }
+          else { status(esc((r && r.error) || 'Aktivizimi dështoi.'), 'err'); $('licOut').innerHTML = '<p class="note" style="color:var(--err)">' + esc((r && r.error) || '') + '</p>'; }
+        });
+      };
+      if ($('licBack')) $('licBack').onclick = function () { open('profile'); };
     },
     boq: function () {
       function params (exp) {
@@ -914,6 +959,18 @@
     S.boqEd.data.groups.forEach(function (g) { g.lines.forEach(function (l) { if (l.key === key) f = l; }); });
     return f;
   }
+  // gjendja e licences: bllokon paleten kur abonimi mungon, tregon diten e mbetur te proves/skadimit
+  function licenseUi (justActivated) {
+    const L = S.license || {};
+    const bar = $('licBar');
+    document.body.classList.toggle('locked', !L.usable);
+    if (!L.usable) { open('license'); return false; }
+    if (L.state === 'trial') { bar.className = ''; bar.textContent = 'Periudha provuese: edhe ' + L.daysLeft + ' ditë (deri më ' + L.trialEnd + '). Kliko për abonimin.'; }
+    else if (L.warn) { bar.className = ''; bar.textContent = 'Abonimi skadon më ' + L.to + ' (edhe ' + L.daysLeft + ' ditë). Kliko për vazhdimin.'; }
+    else bar.className = 'hide';
+    if (justActivated) open('license');
+    return true;
+  }
   function money (v) { const n = Math.round((Number(v) || 0) * 100) / 100; const p = n.toFixed(2).split('.'); return p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + p[1]; }
   function fmt (iso) { if (!iso) return ''; const p = String(iso).split('-'); return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : iso; }
 
@@ -959,6 +1016,7 @@
   };
   function doPending () {
     if (!S.ready) return Promise.resolve(false);
+    if (S.license && !S.license.usable) { open('license'); return Promise.resolve(true); }
     return call('pending', {}).then(function (p) {
       if (!p || !p.ok || !p.section) return false;
       open(p.section);
@@ -986,6 +1044,8 @@
     if (r.catalogError) status('Të dhënat: ' + esc(r.catalogError), 'err');
     else status('Gati · dokumentet ruhen në: ' + esc(r.folder || ''));
     S.ready = true;
+    S.license = r.license || { usable: true };
+    if (!licenseUi()) return;
     doPending().then(function (handled) {
       if (!handled) open(S.section);
     });

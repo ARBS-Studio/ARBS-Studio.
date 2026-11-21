@@ -8,11 +8,13 @@
 #include "Core/DynamicPlan.hpp"
 #include "Core/Json.hpp"
 #include "Core/KosovoCalendar.hpp"
+#include "Core/License.hpp"
 #include "Core/Reports.hpp"
 #include "Core/Solar.hpp"
 #include "Core/Structure.hpp"
 
 #include "ComplexModel.hpp"
+#include "LicenseVectors.hpp"
 
 #include <cmath>
 #include <cstdio>
@@ -368,6 +370,70 @@ static void TestStructure (const Catalog& cat)
 				 BillOfQuantities::Money (sum).c_str (), tasks.front ().es.ToAlb ().c_str (), DynamicPlan::ProjectFinish (tasks).ToAlb ().c_str ());
 }
 
+static std::string Hex (const std::string& h)
+{
+	std::string o;
+	for (size_t i = 0; i + 1 < h.size (); i += 2) o.push_back (static_cast<char> (std::stoi (h.substr (i, 2), nullptr, 16)));
+	return o;
+}
+
+static void TestLicense ()
+{
+	std::printf ("Licenca\n");
+	unsigned char out[64];
+	License::Sha512 (reinterpret_cast<const unsigned char*> ("abc"), 3, out);
+	CHECK (std::string (reinterpret_cast<char*> (out), 64) == Hex ("ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"));
+	const std::string sm = Hex (kShaMsg);
+	License::Sha512 (reinterpret_cast<const unsigned char*> (sm.data ()), sm.size (), out);
+	CHECK (std::string (reinterpret_cast<char*> (out), 64) == Hex (kShaOut));
+	// RFC 8032, testi 1 (mesazh bosh)
+	{
+		const std::string pk = Hex ("d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a");
+		const std::string sig = Hex ("e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b");
+		CHECK (License::Verify (reinterpret_cast<const unsigned char*> (sig.data ()), nullptr, 0, reinterpret_cast<const unsigned char*> (pk.data ())));
+	}
+	int okCount = 0;
+	for (const auto& v : kEdVec) {
+		const std::string pk = Hex (v[0]), m = Hex (v[1]), sig = Hex (v[2]);
+		const bool ok = License::Verify (reinterpret_cast<const unsigned char*> (sig.data ()), reinterpret_cast<const unsigned char*> (m.data ()), m.size (), reinterpret_cast<const unsigned char*> (pk.data ()));
+		CHECK (ok == (v[3][0] == '1'));
+		okCount += ok ? 1 : 0;
+	}
+	CHECK (okCount == 12);
+
+	const LicenseInfo li = License::Parse (kKeyOk);
+	CHECK (li.signatureOk);
+	CHECK (li.id == "ARBS-TEST-0001" && li.name == "Zyra Test \xC3\x8B" && li.to == Date (2027, 10, 31));
+	// celesi i ndare ne rreshta nga email-i
+	std::string wrapped = kKeyOk;
+	wrapped.insert (40, "\r\n ");
+	CHECK (License::Parse (wrapped).signatureOk);
+	// celes i ndryshuar
+	std::string bad = kKeyOk;
+	bad[12] = bad[12] == 'A' ? 'B' : 'A';
+	CHECK (!License::Parse (bad).signatureOk);
+	CHECK (!License::Parse ("ARBS-abc.def").signatureOk);
+	CHECK (!License::Parse ("").signatureOk);
+
+	const Date first (2026, 11, 21);
+	LicenseStatus st = License::Evaluate ("", first, Date (2026, 11, 21));
+	CHECK (st.state == LicenseStatus::Trial && st.usable && st.daysLeft == 14);
+	st = License::Evaluate ("", first, Date (2026, 12, 4));
+	CHECK (st.state == LicenseStatus::Trial && st.daysLeft == 1);
+	st = License::Evaluate ("", first, Date (2026, 12, 5));
+	CHECK (st.state == LicenseStatus::TrialOver && !st.usable);
+	st = License::Evaluate (kKeyOk, first, Date (2027, 1, 10));
+	CHECK (st.state == LicenseStatus::Active && st.usable && !st.warn);
+	st = License::Evaluate (kKeyOk, first, Date (2027, 10, 31));
+	CHECK (st.state == LicenseStatus::Active && st.warn && st.daysLeft == 1);
+	st = License::Evaluate (kKeyOk, first, Date (2027, 11, 1));
+	CHECK (st.state == LicenseStatus::Expired && !st.usable);
+	st = License::Evaluate (kKeyOld, first, Date (2026, 11, 25));	// celes i skaduar gjate proves
+	CHECK (st.state == LicenseStatus::Expired && !st.usable);
+	st = License::Evaluate (bad, first, Date (2026, 11, 25));		// celes i gabuar: prova vazhdon
+	CHECK (st.state == LicenseStatus::Trial && !st.keyError.empty ());
+}
+
 int main (int argc, char** argv)
 {
 	const std::string dataDir = argc > 1 ? argv[1] : "Data";
@@ -386,6 +452,7 @@ int main (int argc, char** argv)
 	TestSolar (cat);
 	TestBoq (cat);
 	TestStructure (cat);
+	TestLicense ();
 	std::printf ("\n%d kontrolle, %d deshtime\n", checks, failures);
 	return failures == 0 ? 0 : 1;
 }
