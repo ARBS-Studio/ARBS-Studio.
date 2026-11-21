@@ -17,6 +17,7 @@
 #include "Core/Solar.hpp"
 #include "Core/Structure.hpp"
 
+#include <algorithm>
 #include <exception>
 #include <functional>
 #include <map>
@@ -415,9 +416,17 @@ Json::Value CmdBillOfQuantities (const Json::Value& req)
 	}
 	const auto parts = BillOfQuantities::ComputeParts (GetCatalog (), model, project, opt);
 	const Json::Value pj = BillOfQuantities::PartsToJson (parts, model);
-	Json::Value r = req.GetBool ("export", true)
-		? SaveAndOpen (project, Reports::QuantitiesAndCost (GetCatalog (), project, ProjectStore::OfficeForReports (), model, opt), true)
-		: Ok ();
+	Json::Value r = Ok ();
+	if (req.GetBool ("export", true)) {
+		std::vector<ReportOutput> outs = Reports::QuantitiesAndCost (GetCatalog (), project, ProjectStore::OfficeForReports (), model, opt);
+		// "only": "tender" = vetem paramasa per ofertim (A31), "priced" = vetem parallogaria me cmime (A30)
+		const std::string only = req.GetString ("only");
+		if (!only.empty ()) {
+			const std::string tag = only == "tender" ? "_A31" : "_A30";
+			outs.erase (std::remove_if (outs.begin (), outs.end (), [&] (const ReportOutput& o) { return o.fileName.find (tag) == std::string::npos; }), outs.end ());
+		}
+		r = SaveAndOpen (project, outs, true);
+	}
 	if (!r.GetBool ("ok")) return r;
 	// "boq" = totali (per projekt me nje objekt = rezultati i plote), "parts" = sipas blloqeve
 	if (!pj.GetBool ("multi")) r.Set ("boq", pj["parts"][0]);

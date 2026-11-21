@@ -722,6 +722,7 @@
         document.querySelectorAll('.bqg').forEach(function (r) { r.onclick = function () { $('bql' + r.getAttribute('data-g')).classList.toggle('hide'); }; });
       }
       $('mkBoq').onclick = function () { run('billOfQuantities', params(true), 'Paramasa dhe parallogaria u gjeneruan').then(afterSave).then(show); };
+      BOQ_EXPORT = function (only, label) { run('billOfQuantities', Object.assign(params(true), { only: only }), label).then(afterSave).then(show); };
       $('prevBoq').onclick = function () { run('billOfQuantities', params(false), 'Parallogaria u llogarit').then(afterSave).then(show); };
       document.querySelectorAll('[data-price]').forEach(function (i) { i.oninput = function () { i.classList.toggle('chg', i.value !== ''); }; });
       function collect () { const o = {}; document.querySelectorAll('[data-price]').forEach(function (i) { if (i.value !== '' && !isNaN(Number(i.value))) o[i.getAttribute('data-price')] = Number(i.value); }); return o; }
@@ -1014,13 +1015,27 @@
       })();
     }
   };
+  // nenmenyja "Paramasa dhe parallogaria"
+  function scrollToCard (el) { if (el) { const c = el.closest('.card') || el; $('main').scrollTop = c.offsetTop - 8; } }
+  const ACTION = {
+    'boq/editor': function () { click('edLoad'); setTimeout(function () { scrollToCard($('boqEd')); }, 50); },
+    'boq/full': function () { boqExport('priced', 'Parallogaria me çmime u krijua'); },
+    'boq/tender': function () { boqExport('tender', 'Paramasa për ofertim u krijua'); },
+    'boq/recap': function () { click('prevBoq'); },
+    'boq/prices': function () { scrollToCard($('savePr')); },
+    'boq/params': function () { scrollToCard($('bqVat')); const v = $('bqVat'); if (v) v.focus(); }
+  };
+  function boqExport (only, label) { if (BOQ_EXPORT) BOQ_EXPORT(only, label); }
+  let BOQ_EXPORT = null;
   function doPending () {
     if (!S.ready) return Promise.resolve(false);
     if (S.license && !S.license.usable) { open('license'); return Promise.resolve(true); }
     return call('pending', {}).then(function (p) {
       if (!p || !p.ok || !p.section) return false;
-      open(p.section);
-      if (p.auto && AUTO[p.section]) AUTO[p.section]();
+      const parts = String(p.section).split('/');
+      open(parts[0]);
+      if (parts[1] && ACTION[p.section]) ACTION[p.section]();
+      else if (p.auto && AUTO[parts[0]]) AUTO[parts[0]]();
       return true;
     });
   }

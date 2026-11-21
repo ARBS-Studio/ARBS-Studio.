@@ -28,6 +28,13 @@ static GSErrCode MenuCommandHandler (const API_MenuParams* menuParams)
 		{ "physics", true }, { "insolation", true }, { "schedules", true }, { "plan", true }, { "profile", false }
 	};
 	ArbsPalette::CreateInstance ();
+	if (k == ID_ARBS_MENU_BOQ - 1) {
+		// nenmenyja "Paramasa dhe parallogaria": veprimi sipas artikullit (indeksi 1-bazuar, 5 = ndares)
+		static const char* boq[] = { "boq/editor", "boq/full", "boq/tender", "boq/recap", "boq", "boq/prices", "boq/params" };
+		const Int32 i = static_cast<Int32> (menuParams->menuItemRef.itemIndex) - 1;
+		ArbsPalette::GetInstance ().ShowSection (i >= 0 && i < 7 ? boq[i] : "boq", i >= 0 && i < 7 && i != 4);
+		return NoError;
+	}
 	ArbsPalette::GetInstance ().ShowSection (actions[k].section, actions[k].autoRun);
 	return NoError;
 }

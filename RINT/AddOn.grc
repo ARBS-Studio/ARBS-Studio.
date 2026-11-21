@@ -29,17 +29,24 @@
 
 'STR#' 32503 "ARBS Studio menu 4" {
 /* [   ] */		"ARBS Studio"
-/* [  1] */		"Përshkrimi teknik nga modeli^ES^EE^EI^ED^EW^E3^EL"
+/* [  1] */		"Përshkrimi teknik^ES^EE^EI^ED^EW^E3^EL"
 }
 
 'STR#' 32504 "ARBS Studio menu 5" {
 /* [   ] */		"ARBS Studio"
-/* [  1] */		"Paramasa dhe parallogaria nga modeli^ES^EE^EI^ED^EW^E3^EL"
+/* [   ] */		"Paramasa dhe parallogaria"
+/* [  1] */			"Redaktori i pozicioneve (sasitë, çmimet, veçoritë)...^ES^EE^EI^ED^EW^E3^EL"
+/* [  2] */			"Parallogaria me çmime (Excel dhe Word)^ES^EE^EI^ED^EW^E3^EL"
+/* [  3] */			"Paramasa për ofertim pa çmime (Excel dhe Word)^ES^EE^EI^ED^EW^E3^EL"
+/* [  4] */			"Rekapitulimi i kostos^ES^EE^EI^ED^EW^E3^EL"
+/* [  5] */			"-"
+/* [  6] */			"Lista e çmimeve njësi...^ES^EE^EI^ED^EW^E3^EL"
+/* [  7] */			"Parametrat (TVSH, të paparashikuarat, koeficienti)...^ES^EE^EI^ED^EW^E3^EL"
 }
 
 'STR#' 32505 "ARBS Studio menu 6" {
 /* [   ] */		"ARBS Studio"
-/* [  1] */		"Fizika ndërtimore nga modeli^ES^EE^EI^ED^EW^E3^EL"
+/* [  1] */		"Fizika ndërtimore^ES^EE^EI^ED^EW^E3^EL"
 }
 
 'STR#' 32506 "ARBS Studio menu 7" {
@@ -54,7 +61,7 @@
 
 'STR#' 32508 "ARBS Studio menu 9" {
 /* [   ] */		"ARBS Studio"
-/* [  1] */		"Plani dinamik nga modeli^ES^EE^EI^ED^EW^E3^EL"
+/* [  1] */		"Plani dinamik^ES^EE^EI^ED^EW^E3^EL"
 }
 
 'STR#' 32509 "ARBS Studio menu 10" {
@@ -84,7 +91,14 @@
 
 'STR#' 32524 "ARBS Studio prompt 5" {
 /* [   ] */		"ARBS Studio"
-/* [  1] */		"Paramasa dhe parallogaria nga sasitë e modelit me çmimet e tregut në Kosovë"
+/* [   ] */		"Paramasa dhe parallogaria"
+/* [  1] */			"Zgjidhni pozicionet, korrigjoni sasitë, njësitë, çmimet dhe veçoritë; shtoni pozicione me dorë"
+/* [  2] */			"Krijon parallogarinë me çmime: Excel me formula (për blloqe fletë për secilin + rekapitulimi), HTML dhe Word"
+/* [  3] */			"Krijon paramasën për ofertim pa çmime (Excel me qelizat e çmimeve për t'u plotësuar dhe Word)"
+/* [  4] */			"Llogarit koston (punimet, të paparashikuarat, TVSH, €/m² BTS) pa krijuar dokumente"
+/* [  5] */			""
+/* [  6] */			"Çmimet njësi të zyrës që vlejnë për të gjitha projektet"
+/* [  7] */			"TVSH, të paparashikuarat dhe koeficienti i çmimeve"
 }
 
 'STR#' 32525 "ARBS Studio prompt 6" {
